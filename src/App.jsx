@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { BOC_RANKS, PREFIX_ORDER, maxPrefix } from "./bocMapping";
 
-const storeKey = "fnz-passport-demo-v8";
+const storeKey = "fnz-passport-demo-v9";
 const saveState = (s) => localStorage.setItem(storeKey, JSON.stringify(s));
 const loadState = () => { try { return JSON.parse(localStorage.getItem(storeKey)) ?? null; } catch { return null; } };
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -53,16 +53,31 @@ const GL_ROLES = [
   "Other"
 ];
 
-/* ---------------- Profile (includes Lodges) ---------------- */
+const lodgeDisplay = (lg) => {
+  if (!lg) return "";
+  const name = lg.name || "";
+  const num = lg.number || "";
+  return num ? `${name} No. ${num}` : name;
+};
+
+/* ---------------- Profile (includes Lodges with add form) ---------------- */
 function ProfileCard({ profile, update }){
   const [edit, setEdit] = useState(false);
+
+  const [newLodge, setNewLodge] = useState({ name:"", number:"", status:"Active", resignedDate:"" });
+
+  const addLodge = () => {
+    if (!newLodge.name) { alert("Please enter Lodge Name."); return; }
+    update({ lodges: [...profile.lodges, { ...newLodge }] });
+    setNewLodge({ name:"", number:"", status:"Active", resignedDate:"" });
+  };
 
   return (
     <div className="card">
       <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
         <h3>Profile</h3>
         <div className="controls">
-          {!edit ? <button onClick={()=>setEdit(true)}>Edit</button> : <button className="primary" onClick={()=>setEdit(false)}>Save</button>}
+          {!edit ? <button onClick={()=>setEdit(true)}>Edit existing</button> : <button className="primary" onClick={()=>setEdit(false)}>Save changes</button>}
         </div>
       </div>
 
@@ -82,13 +97,42 @@ function ProfileCard({ profile, update }){
         <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
           <h3 style={{margin:0}}>Lodges</h3>
         </div>
+
+        {/* Add new Lodge (always enabled) */}
+        <div className="office-card" style={{marginBottom:10, borderStyle:'dashed'}}>
+          <h5>Add a new Lodge</h5>
+          <div className="row">
+            <div><label>Lodge Name</label><input placeholder="e.g., Corinthian Lodge" value={newLodge.name} onChange={e=>setNewLodge({...newLodge, name:e.target.value})}/></div>
+            <div><label>Number</label><input placeholder="e.g., 123" inputMode="numeric" value={newLodge.number} onChange={e=>setNewLodge({...newLodge, number:e.target.value})}/></div>
+            <div><label>Status</label>
+              <select value={newLodge.status} onChange={e=>setNewLodge({...newLodge, status:e.target.value})}>
+                <option>Active</option><option>Resigned</option>
+              </select>
+            </div>
+            <div><label>Resigned date</label><input type="date" value={newLodge.resignedDate} onChange={e=>setNewLodge({...newLodge, resignedDate:e.target.value})}/></div>
+            <div><button className="primary" onClick={addLodge}>Add lodge</button></div>
+          </div>
+        </div>
+
         <table className="offices-table"><thead><tr><th>Lodge</th><th>Status</th><th>Resigned date</th></tr></thead>
         <tbody>
           {profile.lodges.map((lg, idx)=>(
             <tr key={idx}>
-              <td><input disabled={!edit} value={lg.name} onChange={e=>{
-                const c=[...profile.lodges]; c[idx]={...c[idx], name:e.target.value}; update({lodges:c});
-              }}/></td>
+              <td>
+                {edit
+                  ? (<>
+                      <div className="row">
+                        <div><label style={{display:'block'}}>Name</label><input value={lg.name||""} onChange={e=>{
+                          const c=[...profile.lodges]; c[idx]={...c[idx], name:e.target.value}; update({lodges:c});
+                        }}/></div>
+                        <div><label style={{display:'block'}}>Number</label><input value={lg.number||""} onChange={e=>{
+                          const c=[...profile.lodges]; c[idx]={...c[idx], number:e.target.value}; update({lodges:c});
+                        }}/></div>
+                      </div>
+                    </>)
+                  : (<span>{lodgeDisplay(lg)}</span>)
+                }
+              </td>
               <td>
                 <select disabled={!edit} value={lg.status} onChange={e=>{
                   const c=[...profile.lodges]; c[idx]={...c[idx], status:e.target.value}; update({lodges:c});
@@ -96,22 +140,31 @@ function ProfileCard({ profile, update }){
                   <option>Active</option><option>Resigned</option>
                 </select>
               </td>
-              <td><input disabled={!edit} type="date" value={lg.resignedDate} onChange={e=>{
+              <td><input disabled={!edit} type="date" value={lg.resignedDate||""} onChange={e=>{
                 const c=[...profile.lodges]; c[idx]={...c[idx], resignedDate:e.target.value}; update({lodges:c});
               }}/></td>
             </tr>
           ))}
         </tbody></table>
 
-        {/* Mobile cards */}
+        {/* Mobile cards for existing lodges */}
         <div className="office-cards">
           {profile.lodges.map((lg, idx)=> (
             <div className="office-card" key={idx}>
-              <h5>Lodge</h5>
+              <h5>Existing Lodge</h5>
               <div className="row">
-                <div><label>Name</label><input disabled={!edit} value={lg.name} onChange={e=>{
-                  const c=[...profile.lodges]; c[idx]={...c[idx], name:e.target.value}; update({lodges:c});
-                }}/></div>
+                {edit ? (
+                  <>
+                    <div><label>Name</label><input value={lg.name||""} onChange={e=>{
+                      const c=[...profile.lodges]; c[idx]={...c[idx], name:e.target.value}; update({lodges:c});
+                    }}/></div>
+                    <div><label>Number</label><input value={lg.number||""} onChange={e=>{
+                      const c=[...profile.lodges]; c[idx]={...c[idx], number:e.target.value}; update({lodges:c});
+                    }}/></div>
+                  </>
+                ) : (
+                  <div><label>Lodge</label><input disabled value={lodgeDisplay(lg)} /></div>
+                )}
                 <div><label>Status</label>
                   <select disabled={!edit} value={lg.status} onChange={e=>{
                     const c=[...profile.lodges]; c[idx]={...c[idx], status:e.target.value}; update({lodges:c});
@@ -119,17 +172,12 @@ function ProfileCard({ profile, update }){
                     <option>Active</option><option>Resigned</option>
                   </select>
                 </div>
-                <div><label>Resigned</label><input disabled={!edit} type="date" value={lg.resignedDate} onChange={e=>{
+                <div><label>Resigned</label><input disabled={!edit} type="date" value={lg.resignedDate||""} onChange={e=>{
                   const c=[...profile.lodges]; c[idx]={...c[idx], resignedDate:e.target.value}; update({lodges:c});
                 }}/></div>
               </div>
             </div>
           ))}
-        </div>
-
-        <div className="controls">
-          <button className="primary" onClick={()=>update({lodges:[...profile.lodges,{name:"",status:"Active",resignedDate:""}]})}>Add lodge</button>
-          <button disabled={profile.lodges.length===0} onClick={()=>update({lodges: profile.lodges.slice(0,-1)})}>Remove last</button>
         </div>
       </div>
     </div>
@@ -142,8 +190,11 @@ function OfficesCard({ profile, update }){
   const offices = profile.offices || [];
   const setOffices = (arr) => update({ offices: arr });
 
-  const [newLodge, setNewLodge] = useState({ role:"Inner Guard", lodge:"", startDate:"", endDate:"" });
-  const [newGL, setNewGL] = useState({ role:"Grand Sword Bearer", notes:"", startDate:"", endDate:"" });
+  const [newLodge, setNewLodge] = useState({ role:"Inner Guard", lodgeKey:"", startDate:"", endDate:"", roleOther:"" });
+  const [newGL, setNewGL] = useState({ role:"Grand Sword Bearer", notes:"", startDate:"", endDate:"", roleOther:"" });
+
+  // Build lodge dropdown options from Profile
+  const lodgeOptions = (profile.lodges || []).map((lg, i) => ({ key: String(i), label: lodgeDisplay(lg) }));
 
   // Separate arrays for Lodge vs Grand Lodge
   const lodgeOffices = offices.filter(o => o.level === "Lodge");
@@ -151,13 +202,16 @@ function OfficesCard({ profile, update }){
 
   const addLodgeOffice = () => {
     if (!newLodge.role || !newLodge.startDate) { alert("Please select a role and start date."); return; }
-    setOffices([{ id: uid(), level:"Lodge", role:newLodge.role, lodge:newLodge.lodge, startDate:newLodge.startDate, endDate:newLodge.endDate, roleOther: newLodge.role === "Other" ? (newLodge.roleOther||"") : "" }, ...offices]);
-    setNewLodge({ role:"Inner Guard", lodge:"", startDate:"", endDate:"" });
+    if (!newLodge.lodgeKey) { alert("Please choose a Lodge from your Profile."); return; }
+    const idx = parseInt(newLodge.lodgeKey, 10);
+    const lg = profile.lodges[idx];
+    setOffices([{ id: uid(), level:"Lodge", role:newLodge.role, lodge:lodgeDisplay(lg), startDate:newLodge.startDate, endDate:newLodge.endDate, roleOther: newLodge.role === "Other" ? (newLodge.roleOther||"") : "" }, ...offices]);
+    setNewLodge({ role:"Inner Guard", lodgeKey:"", startDate:"", endDate:"", roleOther:"" });
   };
   const addGLOffice = () => {
     if (!newGL.role || !newGL.startDate) { alert("Please select a role and start date."); return; }
     setOffices([{ id: uid(), level:"Grand Lodge", role:newGL.role, lodge:newGL.notes, startDate:newGL.startDate, endDate:newGL.endDate, roleOther: newGL.role === "Other" ? (newGL.roleOther||"") : "" }, ...offices]);
-    setNewGL({ role:"Grand Sword Bearer", notes:"", startDate:"", endDate:"" });
+    setNewGL({ role:"Grand Sword Bearer", notes:"", startDate:"", endDate:"", roleOther:"" });
   };
 
   const updateOffice = (id, patch) => setOffices(offices.map(o => o.id === id ? ({...o, ...patch}) : o));
@@ -177,7 +231,7 @@ function OfficesCard({ profile, update }){
       <div className="card" style={{padding:12, marginTop:12}}>
         <h4 style={{margin:'0 0 8px 0'}}>Lodge Offices</h4>
 
-        {/* Add new Lodge Office (always enabled) */}
+        {/* Add new Lodge Office (pulls from Profile lodges) */}
         <div className="office-card" style={{marginBottom:10, borderStyle:'dashed'}}>
           <h5>Add a new Lodge Office</h5>
           <div className="row">
@@ -190,14 +244,20 @@ function OfficesCard({ profile, update }){
                 <input placeholder="Specify role" value={newLodge.roleOther||""} onChange={e=>setNewLodge({...newLodge, roleOther:e.target.value})}/>
               )}
             </div>
-            <div><label>Lodge</label><input placeholder="e.g., Corinthian Lodge No. 123" value={newLodge.lodge} onChange={e=>setNewLodge({...newLodge, lodge:e.target.value})}/></div>
+            <div>
+              <label>Lodge (from Profile)</label>
+              <select value={newLodge.lodgeKey} onChange={e=>setNewLodge({...newLodge, lodgeKey:e.target.value})}>
+                <option value="">Select a lodge…</option>
+                {lodgeOptions.map(opt => <option key={opt.key} value={opt.key}>{opt.label}</option>)}
+              </select>
+            </div>
             <div><label>Start</label><input type="date" value={newLodge.startDate} onChange={e=>setNewLodge({...newLodge, startDate:e.target.value})}/></div>
             <div><label>End</label><input type="date" value={newLodge.endDate} onChange={e=>setNewLodge({...newLodge, endDate:e.target.value})}/></div>
             <div><button className="primary" onClick={addLodgeOffice}>Add office</button></div>
           </div>
         </div>
 
-        {/* Existing list */}
+        {/* Existing Lodge Offices */}
         <div className="offices-table">
           <table>
             <thead>
@@ -220,7 +280,13 @@ function OfficesCard({ profile, update }){
                       <input disabled={!edit} placeholder="Specify role" value={o.roleOther||""} onChange={e=>updateOffice(o.id,{roleOther:e.target.value})}/>
                     )}
                   </td>
-                  <td><input disabled={!edit} value={o.lodge} onChange={e=>updateOffice(o.id,{lodge:e.target.value})}/></td>
+                  <td>
+                    <select disabled={!edit} value={o.lodge} onChange={e=>updateOffice(o.id,{lodge:e.target.value})}>
+                      {[{label:o.lodge||"", key:o.lodge||""}, ...lodgeOptions].map(opt => (
+                        <option key={opt.key} value={opt.label || opt.key}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </td>
                   <td><input disabled={!edit} type="date" value={o.startDate} onChange={e=>updateOffice(o.id,{startDate:e.target.value})}/></td>
                   <td><input disabled={!edit} type="date" value={o.endDate} onChange={e=>updateOffice(o.id,{endDate:e.target.value})}/></td>
                   <td><button disabled={!edit} onClick={()=>removeOffice(o.id)}>✕</button></td>
@@ -245,7 +311,14 @@ function OfficesCard({ profile, update }){
                     <input disabled={!edit} placeholder="Specify role" value={o.roleOther||""} onChange={e=>updateOffice(o.id,{roleOther:e.target.value})}/>
                   )}
                 </div>
-                <div><label>Lodge</label><input disabled={!edit} value={o.lodge} onChange={e=>updateOffice(o.id,{lodge:e.target.value})}/></div>
+                <div>
+                  <label>Lodge (from Profile)</label>
+                  <select disabled={!edit} value={o.lodge} onChange={e=>updateOffice(o.id,{lodge:e.target.value})}>
+                    {[{label:o.lodge||"", key:o.lodge||""}, ...lodgeOptions].map(opt => (
+                      <option key={opt.key} value={opt.label || opt.key}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
                 <div><label>Start</label><input disabled={!edit} type="date" value={o.startDate} onChange={e=>updateOffice(o.id,{startDate:e.target.value})}/></div>
                 <div><label>End</label><input disabled={!edit} type="date" value={o.endDate} onChange={e=>updateOffice(o.id,{endDate:e.target.value})}/></div>
                 <div><button disabled={!edit} onClick={()=>removeOffice(o.id)}>Remove</button></div>
@@ -259,7 +332,7 @@ function OfficesCard({ profile, update }){
       <div className="card" style={{padding:12, marginTop:12}}>
         <h4 style={{margin:'0 0 8px 0'}}>Grand Lodge Offices</h4>
 
-        {/* Add new GL Office (always enabled) */}
+        {/* Add new GL Office */}
         <div className="office-card" style={{marginBottom:10, borderStyle:'dashed'}}>
           <h5>Add a new Grand Lodge Office</h5>
           <div className="row">
@@ -394,7 +467,7 @@ function DashboardCard({ profile }){
 
       <div style={{marginTop:14, display:'grid', gap:8}}>
         <div className="pill">Years in Craft: <b>{years}</b></div>
-        <div className="pill">Installed as Master: <b>{profile?.milestones?.installedDate ? "Yes" : "No"}</b></div>
+        {/* Removed Installed as Master per instruction */}
         <div className="pill">Total visits: <b>{totalVisits}</b></div>
       </div>
     </div>
@@ -535,16 +608,27 @@ function SettingsCard({ profile, setProfile }){
 /* ---------------- App Shell ---------------- */
 export default function App(){
   const [tab, setTab] = useState("offices"); // default to Offices for quick testing
-  const [profile, setProfile] = useState(() => loadState() ?? {
-    firstName: "Luke", lastName: "Boustridge", autoPrefix: true, manualPrefix: "Bro",
-    currentGrandRank: "GSWB", pastGrandRank: "NONE",
-    milestones: { initiatedDate:"", passedDate:"", raisedDate:"", installedDate:"" },
-    lodges: [{ name: "Corinthian Lodge No. 123", status: "Active", resignedDate: "" }],
-    offices: [
-      { id: uid(), level:"Lodge", role:"Inner Guard", lodge:"Corinthian Lodge No. 123", startDate:"2023-06-01", endDate:"" },
-      { id: uid(), level:"Grand Lodge", role:"Grand Sword Bearer", lodge:"", startDate:"2024-04-01", endDate:"" }
-    ],
-    visits: [{ id: uid(), date: "2025-09-10", lodge: "Example Lodge No. 99", notes: "Installation" }]
+  const [profile, setProfile] = useState(() => {
+    const init = loadState() ?? {
+      firstName: "Luke", lastName: "Boustridge", autoPrefix: true, manualPrefix: "Bro",
+      currentGrandRank: "GSWB", pastGrandRank: "NONE",
+      milestones: { initiatedDate:"", passedDate:"", raisedDate:"", installedDate:"" },
+      lodges: [{ name: "Corinthian Lodge", number: "123", status: "Active", resignedDate: "" }],
+      offices: [
+        { id: uid(), level:"Lodge", role:"Inner Guard", lodge:"Corinthian Lodge No. 123", startDate:"2023-06-01", endDate:"" },
+        { id: uid(), level:"Grand Lodge", role:"Grand Sword Bearer", lodge:"", startDate:"2024-04-01", endDate:"" }
+      ],
+      visits: [{ id: uid(), date: "2025-09-10", lodge: "Example Lodge No. 99", notes: "Installation" }]
+    };
+    // Ensure all lodges have separate name/number fields (migration)
+    init.lodges = (init.lodges || []).map(lg => {
+      if (lg.name && !lg.number && / No\.\s*\d+/.test(lg.name)) {
+        const m = lg.name.match(/^(.*)\s+No\.\s*(\d+)\s*$/);
+        if (m) return { ...lg, name: m[1], number: m[2] };
+      }
+      return lg;
+    });
+    return init;
   });
   useEffect(()=> saveState(profile), [profile]);
 
