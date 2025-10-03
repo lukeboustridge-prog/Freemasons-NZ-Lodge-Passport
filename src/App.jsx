@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { BOC_RANKS, PREFIX_ORDER, maxPrefix } from "./bocMapping";
 
-const storeKey = "fnz-passport-demo-v2";
+const storeKey = "fnz-passport-demo-v3";
 const saveState = (s) => localStorage.setItem(storeKey, JSON.stringify(s));
 const loadState = () => { try { return JSON.parse(localStorage.getItem(storeKey)) ?? null; } catch { return null; } };
+const uid = () => Math.random().toString(36).slice(2, 9);
 
 const RankSelect = ({ value, onChange }) => (
   <select value={value} onChange={(e)=>onChange(e.target.value)}>
@@ -13,6 +14,7 @@ const RankSelect = ({ value, onChange }) => (
   </select>
 );
 
+/* ---------------- Profile ---------------- */
 function ProfileCard({ profile, update }){
   const entitlementPrefix = useMemo(() => {
     const curr = BOC_RANKS[profile.currentGrandRank]?.entitlementPrefix ?? "Bro";
@@ -45,6 +47,7 @@ function ProfileCard({ profile, update }){
   );
 }
 
+/* ---------------- Dashboard ---------------- */
 function DashboardCard({ profile }){
   const entitlementPrefix = useMemo(() => {
     const curr = BOC_RANKS[profile.currentGrandRank]?.entitlementPrefix ?? "Bro";
@@ -72,6 +75,7 @@ function DashboardCard({ profile }){
   );
 }
 
+/* ---------------- Lodges ---------------- */
 function LodgesCard({ profile, update }){
   const updateLodge = (i, patch) => { const c=[...profile.lodges]; c[i]={...c[i],...patch}; update({lodges:c}); };
   const add = () => update({lodges: [...profile.lodges, { name:"", status:"Active", resignedDate:"" }]});
@@ -102,43 +106,140 @@ function LodgesCard({ profile, update }){
   );
 }
 
+/* ---------------- Visits ---------------- */
+function VisitsCard({ profile, update }){
+  const [form, setForm] = useState({ date:"", lodge:"", notes:"" });
+  const addVisit = () => {
+    if (!form.date || !form.lodge) return;
+    const entry = { id: uid(), ...form };
+    update({ visits: [entry, ...profile.visits] });
+    setForm({ date:"", lodge:"", notes:"" });
+  };
+  const remove = (id) => update({ visits: profile.visits.filter(v => v.id !== id) });
+
+  return (
+    <div className="card">
+      <h3>Visits</h3>
+      <div className="row">
+        <div><label>Date</label><input type="date" value={form.date} onChange={e=>setForm({...form, date:e.target.value})}/></div>
+        <div><label>Lodge</label><input placeholder="Which lodge?" value={form.lodge} onChange={e=>setForm({...form, lodge:e.target.value})}/></div>
+      </div>
+      <label>Notes</label>
+      <input placeholder="E.g., Installation, First degree, Remarks" value={form.notes} onChange={e=>setForm({...form, notes:e.target.value})}/>
+      <div className="controls"><button className="primary" onClick={addVisit}>Add visit</button></div>
+
+      <table style={{marginTop:8}}>
+        <thead><tr><th style={{width:"18%"}}>Date</th><th style={{width:"42%"}}>Lodge</th><th style={{width:"32%"}}>Notes</th><th style={{width:"8%"}}></th></tr></thead>
+        <tbody>
+          {profile.visits.map(v => (
+            <tr key={v.id}>
+              <td>{v.date}</td>
+              <td>{v.lodge}</td>
+              <td className="muted">{v.notes}</td>
+              <td><button onClick={()=>remove(v.id)}>✕</button></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/* ---------------- Settings ---------------- */
+function SettingsCard({ profile, setProfile }){
+  const fileRef = useRef(null);
+
+  const exportJson = () => {
+    const blob = new Blob([JSON.stringify(profile, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "fnz-passport-profile.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importJson = (file) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result);
+        // Minimal shape guard
+        if (!data || typeof data !== "object") throw new Error("Invalid file");
+        setProfile(data);
+      } catch (e) { alert("Could not import file: " + e.message); }
+    };
+    reader.readAsText(file);
+  };
+
+  const resetAll = () => {
+    if (!confirm("Reset all local data? This cannot be undone.")) return;
+    localStorage.removeItem(storeKey);
+    location.reload();
+  };
+
+  return (
+    <div className="card">
+      <h3>Settings</h3>
+      <div className="controls">
+        <button onClick={exportJson} className="primary">Export profile (JSON)</button>
+        <input ref={fileRef} type="file" accept="application/json" style={{display:"none"}} onChange={(e)=> e.target.files?.[0] && importJson(e.target.files[0])} />
+        <button onClick={()=>fileRef.current?.click()}>Import profile (JSON)</button>
+        <button onClick={resetAll}>Reset local data</button>
+      </div>
+      <div className="muted" style={{marginTop:8}}>Data is stored only on this device (localStorage). Export to back up or move to another device.</div>
+    </div>
+  );
+}
+
+/* ---------------- App Shell ---------------- */
 export default function App(){
-  const [tab, setTab] = useState("dashboard"); // mobile tabs
+  const [tab, setTab] = useState("dashboard"); // dashboard | profile | lodges | visits | settings
   const [profile, setProfile] = useState(() => loadState() ?? {
     firstName: "Luke", lastName: "Boustridge", autoPrefix: true, manualPrefix: "Bro",
     currentGrandRank: "GSWB", pastGrandRank: "NONE",
     lodges: [{ name: "Corinthian Lodge No. 123", status: "Active", resignedDate: "" },
-             { name: "Southern Star Lodge No. 45", status: "Resigned", resignedDate: "2024-11-12" }]
+             { name: "Southern Star Lodge No. 45", status: "Resigned", resignedDate: "2024-11-12" }],
+    visits: [
+      { id: uid(), date: "2025-09-10", lodge: "Example Lodge No. 99", notes: "Installation" }
+    ]
   });
   useEffect(()=> saveState(profile), [profile]);
   const update = (patch) => setProfile(p => ({...p, ...patch}));
 
   return (
     <div className="container">
-      {/* Mobile tab bar (hidden on desktop via CSS) */}
+      {/* Mobile tab bar */}
       <div className="tabbar">
         <div className="tabs">
           <button className={`tab ${tab==='dashboard'?'active':''}`} onClick={()=>setTab('dashboard')}>Dashboard</button>
           <button className={`tab ${tab==='profile'?'active':''}`} onClick={()=>setTab('profile')}>Profile</button>
           <button className={`tab ${tab==='lodges'?'active':''}`} onClick={()=>setTab('lodges')}>Lodges</button>
+          <button className={`tab ${tab==='visits'?'active':''}`} onClick={()=>setTab('visits')}>Visits</button>
+          <button className={`tab ${tab==='settings'?'active':''}`} onClick={()=>setTab('settings')}>Settings</button>
         </div>
       </div>
 
       {/* Mobile stack */}
       <div className="stack">
         {tab === 'dashboard' && <DashboardCard profile={profile}/>}
-        {tab === 'profile' && <ProfileCard profile={profile} update={update}/>}
-        {tab === 'lodges' && <LodgesCard profile={profile} update={update}/>}
+        {tab === 'profile' && <ProfileCard profile={profile} update={(p)=>update(p)}/>}
+        {tab === 'lodges' && <LodgesCard profile={profile} update={(p)=>update(p)}/>}
+        {tab === 'visits' && <VisitsCard profile={profile} update={(p)=>update(p)}/>}
+        {tab === 'settings' && <SettingsCard profile={profile} setProfile={setProfile}/>}
       </div>
 
       {/* Desktop grid */}
       <div className="grid">
-        <ProfileCard profile={profile} update={update}/>
+        <ProfileCard profile={profile} update={(p)=>update(p)}/>
         <DashboardCard profile={profile}/>
       </div>
-
       <div className="grid">
-        <LodgesCard profile={profile} update={update}/>
+        <LodgesCard profile={profile} update={(p)=>update(p)}/>
+        <VisitsCard profile={profile} update={(p)=>update(p)}/>
+      </div>
+      <div className="grid">
+        <SettingsCard profile={profile} setProfile={setProfile}/>
       </div>
     </div>
   );
