@@ -5,7 +5,6 @@ type LogoProps = {
 };
 
 export default function FMNZLogo({ className = "w-32 h-auto" }: LogoProps) {
-  // Corrected URL per user
   const src =
     "https://freemasonsnz.org/wp-content/uploads/2024/05/Freemasons-logo-colour-blue-BG-S";
   return (

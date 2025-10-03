@@ -144,7 +144,8 @@ export function VisitsScreen({
   onUpdate: (v: Visit) => void;
   onDelete?: (id: string) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [form, setForm] = useState<Visit>({ id: "new", date: "", lodgeId: "", purpose: "", notes: "" });
 
   const lodgeName = (id: string) => lodges.find((l) => l.id === id)?.name || "Unknown";
 
@@ -154,13 +155,81 @@ export function VisitsScreen({
         title="Visits"
         action={
           <button
-            onClick={() => setOpen(true)}
+            onClick={() => setAdding((s) => !s)}
             className="px-3 py-2 rounded-xl bg-blue-600 text-white"
           >
-            Add visit
+            {adding ? "Close" : "Add visit"}
           </button>
         }
       >
+        {adding && (
+          <form
+            className="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-3 rounded-xl border p-3 bg-white"
+            onSubmit={(e) => {
+              e.preventDefault();
+              onSave({ ...form, id: crypto.randomUUID() });
+              setForm({ id: "new", date: "", lodgeId: "", purpose: "", notes: "" });
+              setAdding(false);
+            }}
+          >
+            <label className="flex flex-col text-sm">
+              <span className="mb-1 font-medium">Date</span>
+              <input
+                type="date"
+                value={form.date}
+                onChange={(e) => setForm({ ...form, date: e.target.value })}
+                className="border rounded-xl px-3 py-2"
+                required
+              />
+            </label>
+
+            <label className="flex flex-col text-sm">
+              <span className="mb-1 font-medium">Lodge</span>
+              <select
+                value={form.lodgeId}
+                onChange={(e) => setForm({ ...form, lodgeId: e.target.value })}
+                className="border rounded-xl px-3 py-2"
+                required
+              >
+                <option value="">Select lodge</option>
+                {lodges.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="sm:col-span-2 flex flex-col text-sm">
+              <span className="mb-1 font-medium">Purpose</span>
+              <input
+                value={form.purpose || ""}
+                onChange={(e) => setForm({ ...form, purpose: e.target.value })}
+                className="border rounded-xl px-3 py-2"
+                placeholder="Regular meeting, installation, degree, rehearsal"
+              />
+            </label>
+
+            <label className="sm:col-span-2 flex flex-col text-sm">
+              <span className="mb-1 font-medium">Notes</span>
+              <textarea
+                value={form.notes || ""}
+                onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                className="border rounded-xl px-3 py-2 min-h-[88px]"
+              />
+            </label>
+
+            <div className="sm:col-span-2 flex justify-end gap-2">
+              <button type="button" onClick={() => setAdding(false)} className="px-3 py-2 rounded-xl border">
+                Cancel
+              </button>
+              <button type="submit" className="px-4 py-2 rounded-xl bg-blue-600 text-white">
+                Save visit
+              </button>
+            </div>
+          </form>
+        )}
+
         <div className="space-y-2">
           {visits
             .slice()
@@ -179,10 +248,6 @@ export function VisitsScreen({
           )}
         </div>
       </SectionCard>
-
-      {/* Reuse the previous modal for adding new visits quickly */}
-      {/* If you prefer inline add, we can replace the modal with an inline empty RowShell */}
-      {/* VisitFormModal kept from prior version for quick entry */}
     </main>
   );
 }

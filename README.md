@@ -1,26 +1,25 @@
-# Freemasons Passport — UI Fixes (Oct 2025)
+# Freemasons NZ Passport - full app
 
-This package includes drop-in replacements for:
-- `Dashboard` screen (separate sections for Memberships, Current Lodge offices, Current Grand Lodge offices)
-- `Milestones` screen (responsive grid — no overlapping fields)
-- `Visits` screen (fields no longer overlap + quick Add Visit modal; you do **not** need to enter edit to add a visit)
-- `FMNZLogo` component referencing the correct image URL with a local fallback
+This repository is a minimal Vite React TypeScript app with Tailwind and the updated Passport UI.
 
-## Install
+## Quick start
 
-Copy `src/` into your project. Ensure Tailwind is enabled and your page container uses a mobile-friendly width like:
+1. Clone or upload to GitHub, then install:
+   ```bash
+   npm i
+   npm run dev
+   ```
 
-```jsx
-<div className="max-w-3xl mx-auto p-4 sm:p-6">...</div>
-```
+2. Build for production:
+   ```bash
+   npm run build
+   npm run preview
+   ```
 
-## Usage
+The app includes:
+- Dashboard with separate sections for memberships, lodge offices, and grand lodge offices
+- Milestones with compact collapsible rows and inline edit
+- Visits with compact collapsible rows and inline add and edit
+- FMNZLogo component pointing to the correct URL with a local fallback
 
-```tsx
-import Dashboard, { LodgeMembership, Office } from "./src/screens/Dashboard";
-import { MilestonesScreen, Milestone } from "./src/screens/Milestones";
-import { VisitsScreen, Visit } from "./src/screens/Visits";
-import FMNZLogo from "./src/components/Logo";
-```
-
-Wire your data into the props shown in each component file.
+Replace the placeholder state in `App.tsx` with your API store when ready.

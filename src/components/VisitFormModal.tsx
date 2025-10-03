@@ -1,3 +1,5 @@
+// Optional modal left for potential reuse if you prefer modal add flow in future.
+// Not used by the full app by default.
 import React, { useState } from "react";
 
 export type Visit = {
@@ -76,7 +78,7 @@ export function VisitFormModal({
           <label className="sm:col-span-2 flex flex-col text-sm">
             <span className="mb-1 font-medium">Purpose</span>
             <input
-              value={form.purpose}
+              value={form.purpose || ""}
               onChange={(e) => setForm({ ...form, purpose: e.target.value })}
               className="border rounded-xl px-3 py-2"
               placeholder="Regular meeting, installation, degree, rehearsal"
@@ -86,7 +88,7 @@ export function VisitFormModal({
           <label className="sm:col-span-2 flex flex-col text-sm">
             <span className="mb-1 font-medium">Notes</span>
             <textarea
-              value={form.notes}
+              value={form.notes || ""}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
               className="border rounded-xl px-3 py-2 min-h-[88px]"
             />
