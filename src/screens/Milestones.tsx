@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { SectionCard } from "../components/SectionCard";
+import { RowShell } from "../components/CollapseRow";
 
 export type Milestone = {
   id: string;
@@ -8,12 +9,135 @@ export type Milestone = {
   notes?: string;
 };
 
+function MilestoneItem({
+  item,
+  onUpdate,
+  onDelete,
+}: {
+  item: Milestone;
+  onUpdate: (m: Milestone) => void;
+  onDelete?: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [edit, setEdit] = useState<Milestone>(item);
+
+  const header = (
+    <div>
+      <div className="font-medium">{item.type}</div>
+      <div className="text-sm text-gray-600">{item.date}</div>
+    </div>
+  );
+
+  return (
+    <RowShell
+      open={open}
+      onToggle={() => setOpen(!open)}
+      header={header}
+      actions={
+        <button
+          type="button"
+          className="text-sm px-2 py-1 rounded-lg border"
+          onClick={(e) => {
+            e.stopPropagation();
+            setOpen(true);
+          }}
+        >
+          Edit
+        </button>
+      }
+    >
+      <form
+        className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onUpdate(edit);
+          setOpen(false);
+        }}
+      >
+        <label className="flex flex-col text-sm">
+          <span className="mb-1 font-medium">Date</span>
+          <input
+            type="date"
+            value={edit.date}
+            onChange={(e) => setEdit({ ...edit, date: e.target.value })}
+            className="border rounded-xl px-3 py-2"
+            required
+          />
+        </label>
+
+        <label className="flex flex-col text-sm">
+          <span className="mb-1 font-medium">Type</span>
+          <select
+            value={edit.type}
+            onChange={(e) =>
+              setEdit({ ...edit, type: e.target.value as Milestone["type"] })
+            }
+            className="border rounded-xl px-3 py-2"
+          >
+            <option>Initiation</option>
+            <option>Passing</option>
+            <option>Raising</option>
+            <option>Installation</option>
+            <option>50 Year</option>
+            <option>60 Year</option>
+            <option>Other</option>
+          </select>
+        </label>
+
+        <label className="sm:col-span-2 flex flex-col text-sm">
+          <span className="mb-1 font-medium">Notes</span>
+          <textarea
+            value={edit.notes || ""}
+            onChange={(e) => setEdit({ ...edit, notes: e.target.value })}
+            className="border rounded-xl px-3 py-2 min-h-[88px]"
+            placeholder="Optional"
+          />
+        </label>
+
+        <div className="sm:col-span-2 flex justify-between gap-2">
+          {onDelete ? (
+            <button
+              type="button"
+              onClick={() => onDelete(item.id)}
+              className="px-3 py-2 rounded-xl border text-red-600"
+            >
+              Delete
+            </button>
+          ) : <span />}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setEdit(item);
+                setOpen(false);
+              }}
+              className="px-3 py-2 rounded-xl border"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 rounded-xl bg-blue-600 text-white"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </form>
+    </RowShell>
+  );
+}
+
 export function MilestonesScreen({
   milestones,
   onSave,
+  onUpdate,
+  onDelete,
 }: {
   milestones: Milestone[];
   onSave: (m: Milestone) => void;
+  onUpdate: (m: Milestone) => void;
+  onDelete?: (id: string) => void;
 }) {
   const [form, setForm] = useState<Milestone>({
     id: "new",
@@ -24,7 +148,7 @@ export function MilestonesScreen({
 
   return (
     <main className="max-w-3xl mx-auto p-4 sm:p-6">
-      <SectionCard title="Milestones">
+      <SectionCard title="Milestones" action={null}>
         <form
           className="grid grid-cols-1 sm:grid-cols-2 gap-3"
           onSubmit={(e) => {
@@ -90,24 +214,22 @@ export function MilestonesScreen({
           </div>
         </form>
 
-        <ul className="mt-6 divide-y">
+        <div className="mt-6 space-y-2">
           {milestones
             .slice()
             .sort((a, b) => a.date.localeCompare(b.date))
             .map((m) => (
-              <li key={m.id} className="py-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="font-medium">{m.type}</div>
-                    <div className="text-sm text-gray-600">{m.date}</div>
-                    {m.notes && (
-                      <div className="text-sm text-gray-500 mt-1">{m.notes}</div>
-                    )}
-                  </div>
-                </div>
-              </li>
+              <MilestoneItem
+                key={m.id}
+                item={m}
+                onUpdate={onUpdate}
+                onDelete={onDelete}
+              />
             ))}
-        </ul>
+          {milestones.length === 0 && (
+            <div className="py-3 text-gray-500">No milestones yet</div>
+          )}
+        </div>
       </SectionCard>
     </main>
   );
