@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { BOC_RANKS, PREFIX_ORDER, maxPrefix } from "./bocMapping";
 
-const storeKey = "fnz-passport-demo-v5";
+const storeKey = "fnz-passport-demo-v6";
 const saveState = (s) => localStorage.setItem(storeKey, JSON.stringify(s));
 const loadState = () => { try { return JSON.parse(localStorage.getItem(storeKey)) ?? null; } catch { return null; } };
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -23,7 +23,37 @@ const RankSelect = ({ value, onChange, disabled }) => (
   </select>
 );
 
-/* ---------------- Profile (now includes Lodges) ---------------- */
+// Static options
+const LODGE_ROLES = [
+  "Worshipful Master",
+  "Immediate Past Master",
+  "Senior Warden",
+  "Junior Warden",
+  "Treasurer",
+  "Secretary",
+  "Director of Ceremonies",
+  "Almoner",
+  "Chaplain",
+  "Senior Deacon",
+  "Junior Deacon",
+  "Inner Guard",
+  "Tyler",
+  "Organist",
+  "Other"
+];
+
+const GL_ROLES = [
+  "Grand Sword Bearer",
+  "Grand Director of Ceremonies",
+  "Grand Almoner",
+  "Grand Superintendent of Works",
+  "Deputy Grand Master",
+  "Assistant Grand Director of Ceremonies",
+  "Grand Tyler",
+  "Other"
+];
+
+/* ---------------- Profile (includes Lodges) ---------------- */
 function ProfileCard({ profile, update }){
   const [edit, setEdit] = useState(false);
 
@@ -81,13 +111,19 @@ function ProfileCard({ profile, update }){
   );
 }
 
-/* ---------------- Offices Held (now contains Grand Rank editing) ---------------- */
+/* ---------------- Offices Held ---------------- */
 function OfficesCard({ profile, update }){
   const [edit, setEdit] = useState(false);
   const offices = profile.offices || [];
   const setOffices = (arr) => update({ offices: arr });
 
-  const addOffice = () => setOffices([{ id: uid(), type:"Lodge Office", title:"", lodge:"", startDate:"", endDate:"" }, ...offices]);
+  // Separate arrays for Lodge vs Grand Lodge
+  const lodgeOffices = offices.filter(o => o.level === "Lodge");
+  const glOffices = offices.filter(o => o.level === "Grand Lodge");
+
+  const addLodgeOffice = () => setOffices([{ id: uid(), level:"Lodge", role:"Worshipful Master", lodge:"", startDate:"", endDate:"", roleOther:"" }, ...offices]);
+  const addGLOffice = () => setOffices([{ id: uid(), level:"Grand Lodge", role:"Grand Sword Bearer", lodge:"", startDate:"", endDate:"", roleOther:"" }, ...offices]);
+
   const updateOffice = (id, patch) => setOffices(offices.map(o => o.id === id ? ({...o, ...patch}) : o));
   const removeOffice = (id) => setOffices(offices.filter(o => o.id !== id));
 
@@ -100,7 +136,81 @@ function OfficesCard({ profile, update }){
         </div>
       </div>
 
-      {/* Grand Rank controls moved here */}
+      {/* Lodge Offices FIRST */}
+      <div className="card" style={{padding:12, marginTop:12}}>
+        <h4 style={{margin:'0 0 8px 0'}}>Lodge Offices</h4>
+        <table>
+          <thead>
+            <tr>
+              <th style={{width:"28%"}}>Role</th>
+              <th style={{width:"28%"}}>Lodge</th>
+              <th style={{width:"18%"}}>Start</th>
+              <th style={{width:"18%"}}>End</th>
+              <th style={{width:"8%"}}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {lodgeOffices.map(o => (
+              <tr key={o.id}>
+                <td>
+                  <select disabled={!edit} value={o.role} onChange={e=>updateOffice(o.id,{role:e.target.value})}>
+                    {LODGE_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                  {o.role === "Other" && (
+                    <input disabled={!edit} placeholder="Specify role" value={o.roleOther||""} onChange={e=>updateOffice(o.id,{roleOther:e.target.value})}/>
+                  )}
+                </td>
+                <td><input disabled={!edit} value={o.lodge} onChange={e=>updateOffice(o.id,{lodge:e.target.value})}/></td>
+                <td><input disabled={!edit} type="date" value={o.startDate} onChange={e=>updateOffice(o.id,{startDate:e.target.value})}/></td>
+                <td><input disabled={!edit} type="date" value={o.endDate} onChange={e=>updateOffice(o.id,{endDate:e.target.value})}/></td>
+                <td><button disabled={!edit} onClick={()=>removeOffice(o.id)}>✕</button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div className="controls">
+          <button disabled={!edit} className="primary" onClick={addLodgeOffice}>Add lodge office</button>
+        </div>
+      </div>
+
+      {/* Grand Lodge Offices SECOND */}
+      <div className="card" style={{padding:12, marginTop:12}}>
+        <h4 style={{margin:'0 0 8px 0'}}>Grand Lodge Offices</h4>
+        <table>
+          <thead>
+            <tr>
+              <th style={{width:"30%"}}>Role</th>
+              <th style={{width:"30%"}}>Notes / Region</th>
+              <th style={{width:"18%"}}>Start</th>
+              <th style={{width:"18%"}}>End</th>
+              <th style={{width:"8%"}}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {glOffices.map(o => (
+              <tr key={o.id}>
+                <td>
+                  <select disabled={!edit} value={o.role} onChange={e=>updateOffice(o.id,{role:e.target.value})}>
+                    {GL_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                  {o.role === "Other" && (
+                    <input disabled={!edit} placeholder="Specify role" value={o.roleOther||""} onChange={e=>updateOffice(o.id,{roleOther:e.target.value})}/>
+                  )}
+                </td>
+                <td><input disabled={!edit} placeholder="District/Notes" value={o.lodge||""} onChange={e=>updateOffice(o.id,{lodge:e.target.value})}/></td>
+                <td><input disabled={!edit} type="date" value={o.startDate} onChange={e=>updateOffice(o.id,{startDate:e.target.value})}/></td>
+                <td><input disabled={!edit} type="date" value={o.endDate} onChange={e=>updateOffice(o.id,{endDate:e.target.value})}/></td>
+                <td><button disabled={!edit} onClick={()=>removeOffice(o.id)}>✕</button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div className="controls">
+          <button disabled={!edit} className="primary" onClick={addGLOffice}>Add GL office</button>
+        </div>
+      </div>
+
+      {/* Grand Rank LAST */}
       <div className="card" style={{padding:12, marginTop:12}}>
         <h4 style={{margin:'0 0 8px 0'}}>Grand Rank</h4>
         <div className="row" style={{alignItems:"center"}}>
@@ -123,46 +233,6 @@ function OfficesCard({ profile, update }){
               {PREFIX_ORDER.map(p => <option key={p} value={p}>{p}</option>)}
             </select>
           )}
-        </div>
-      </div>
-
-      {/* Offices list */}
-      <div className="card" style={{padding:12, marginTop:12}}>
-        <h4 style={{margin:'0 0 8px 0'}}>Lodge / District Offices</h4>
-        <table>
-          <thead>
-            <tr>
-              <th style={{width:"18%"}}>Type</th>
-              <th style={{width:"26%"}}>Title/Role</th>
-              <th style={{width:"26%"}}>Lodge</th>
-              <th style={{width:"15%"}}>Start</th>
-              <th style={{width:"15%"}}>End</th>
-              <th style={{width:"5%"}}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {offices.map(o => (
-              <tr key={o.id}>
-                <td>
-                  <select disabled={!edit} value={o.type} onChange={e=>updateOffice(o.id,{type:e.target.value})}>
-                    <option>Lodge Office</option>
-                    <option>District Office</option>
-                    <option>Grand Lodge Office</option>
-                    <option>Committee</option>
-                  </select>
-                </td>
-                <td><input disabled={!edit} value={o.title} onChange={e=>updateOffice(o.id,{title:e.target.value})}/></td>
-                <td><input disabled={!edit} value={o.lodge} onChange={e=>updateOffice(o.id,{lodge:e.target.value})}/></td>
-                <td><input disabled={!edit} type="date" value={o.startDate} onChange={e=>updateOffice(o.id,{startDate:e.target.value})}/></td>
-                <td><input disabled={!edit} type="date" value={o.endDate} onChange={e=>updateOffice(o.id,{endDate:e.target.value})}/></td>
-                <td><button disabled={!edit} onClick={()=>removeOffice(o.id)}>✕</button></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        <div className="controls">
-          <button disabled={!edit} className="primary" onClick={addOffice}>Add office</button>
         </div>
       </div>
     </div>
@@ -196,7 +266,6 @@ function DashboardCard({ profile }){
       <div className="muted">Auto-updates as you change data.</div>
 
       <div style={{marginTop:14, display:'grid', gap:8}}>
-        {/* Removed separate post-nominals pill per instruction */}
         <div className="pill">Years in Craft: <b>{years}</b></div>
         <div className="pill">Installed as Master: <b>{profile?.milestones?.installedDate ? "Yes" : "No"}</b></div>
         <div className="pill">Total visits: <b>{totalVisits}</b></div>
@@ -343,10 +412,10 @@ export default function App(){
     firstName: "Luke", lastName: "Boustridge", autoPrefix: true, manualPrefix: "Bro",
     currentGrandRank: "GSWB", pastGrandRank: "NONE",
     milestones: { initiatedDate:"", passedDate:"", raisedDate:"", installedDate:"" },
-    lodges: [{ name: "Corinthian Lodge No. 123", status: "Active", resignedDate: "" },
-             { name: "Southern Star Lodge No. 45", status: "Resigned", resignedDate: "2024-11-12" }],
+    lodges: [{ name: "Corinthian Lodge No. 123", status: "Active", resignedDate: "" }],
     offices: [
-      { id: uid(), type:"Lodge Office", title:"Junior Warden", lodge:"Corinthian Lodge No. 123", startDate:"2023-06-01", endDate:"" }
+      { id: uid(), level:"Lodge", role:"Worshipful Master", lodge:"Corinthian Lodge No. 123", startDate:"2023-06-01", endDate:"" },
+      { id: uid(), level:"Grand Lodge", role:"Grand Sword Bearer", lodge:"", startDate:"2024-04-01", endDate:"" }
     ],
     visits: [{ id: uid(), date: "2025-09-10", lodge: "Example Lodge No. 99", notes: "Installation" }]
   });
