@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { BOC_RANKS, PREFIX_ORDER, maxPrefix } from "./bocMapping";
 
-const storeKey = "fnz-passport-demo-v7";
+const storeKey = "fnz-passport-demo-v8";
 const saveState = (s) => localStorage.setItem(storeKey, JSON.stringify(s));
 const loadState = () => { try { return JSON.parse(localStorage.getItem(storeKey)) ?? null; } catch { return null; } };
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -23,7 +23,7 @@ const RankSelect = ({ value, onChange, disabled }) => (
   </select>
 );
 
-// Lodge roles in reverse order as requested (including Deputy Master)
+// Lodge roles order (as requested)
 const LODGE_ROLES = [
   "Inner Guard",
   "Junior Deacon",
@@ -128,8 +128,8 @@ function ProfileCard({ profile, update }){
         </div>
 
         <div className="controls">
-          <button disabled={!edit} className="primary" onClick={()=>update({lodges:[...profile.lodges,{name:"",status:"Active",resignedDate:""}]})}>Add lodge</button>
-          <button disabled={!edit || profile.lodges.length===0} onClick={()=>update({lodges: profile.lodges.slice(0,-1)})}>Remove last</button>
+          <button className="primary" onClick={()=>update({lodges:[...profile.lodges,{name:"",status:"Active",resignedDate:""}]})}>Add lodge</button>
+          <button disabled={profile.lodges.length===0} onClick={()=>update({lodges: profile.lodges.slice(0,-1)})}>Remove last</button>
         </div>
       </div>
     </div>
@@ -138,16 +138,27 @@ function ProfileCard({ profile, update }){
 
 /* ---------------- Offices Held ---------------- */
 function OfficesCard({ profile, update }){
-  const [edit, setEdit] = useState(false);
+  const [edit, setEdit] = useState(false); // for editing existing
   const offices = profile.offices || [];
   const setOffices = (arr) => update({ offices: arr });
+
+  const [newLodge, setNewLodge] = useState({ role:"Inner Guard", lodge:"", startDate:"", endDate:"" });
+  const [newGL, setNewGL] = useState({ role:"Grand Sword Bearer", notes:"", startDate:"", endDate:"" });
 
   // Separate arrays for Lodge vs Grand Lodge
   const lodgeOffices = offices.filter(o => o.level === "Lodge");
   const glOffices = offices.filter(o => o.level === "Grand Lodge");
 
-  const addLodgeOffice = () => setOffices([{ id: uid(), level:"Lodge", role:"Inner Guard", lodge:"", startDate:"", endDate:"", roleOther:"" }, ...offices]);
-  const addGLOffice = () => setOffices([{ id: uid(), level:"Grand Lodge", role:"Grand Sword Bearer", lodge:"", startDate:"", endDate:"", roleOther:"" }, ...offices]);
+  const addLodgeOffice = () => {
+    if (!newLodge.role || !newLodge.startDate) { alert("Please select a role and start date."); return; }
+    setOffices([{ id: uid(), level:"Lodge", role:newLodge.role, lodge:newLodge.lodge, startDate:newLodge.startDate, endDate:newLodge.endDate, roleOther: newLodge.role === "Other" ? (newLodge.roleOther||"") : "" }, ...offices]);
+    setNewLodge({ role:"Inner Guard", lodge:"", startDate:"", endDate:"" });
+  };
+  const addGLOffice = () => {
+    if (!newGL.role || !newGL.startDate) { alert("Please select a role and start date."); return; }
+    setOffices([{ id: uid(), level:"Grand Lodge", role:newGL.role, lodge:newGL.notes, startDate:newGL.startDate, endDate:newGL.endDate, roleOther: newGL.role === "Other" ? (newGL.roleOther||"") : "" }, ...offices]);
+    setNewGL({ role:"Grand Sword Bearer", notes:"", startDate:"", endDate:"" });
+  };
 
   const updateOffice = (id, patch) => setOffices(offices.map(o => o.id === id ? ({...o, ...patch}) : o));
   const removeOffice = (id) => setOffices(offices.filter(o => o.id !== id));
@@ -156,8 +167,9 @@ function OfficesCard({ profile, update }){
     <div className="card">
       <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
         <h3>Offices Held</h3>
+        <div className="muted">Add a new office using the forms below. Use <b>Edit</b> only to modify existing entries.</div>
         <div className="controls">
-          {!edit ? <button onClick={()=>setEdit(true)}>Edit</button> : <button className="primary" onClick={()=>setEdit(false)}>Save</button>}
+          {!edit ? <button onClick={()=>setEdit(true)}>Edit existing</button> : <button className="primary" onClick={()=>setEdit(false)}>Save changes</button>}
         </div>
       </div>
 
@@ -165,7 +177,27 @@ function OfficesCard({ profile, update }){
       <div className="card" style={{padding:12, marginTop:12}}>
         <h4 style={{margin:'0 0 8px 0'}}>Lodge Offices</h4>
 
-        {/* Desktop table */}
+        {/* Add new Lodge Office (always enabled) */}
+        <div className="office-card" style={{marginBottom:10, borderStyle:'dashed'}}>
+          <h5>Add a new Lodge Office</h5>
+          <div className="row">
+            <div>
+              <label>Role</label>
+              <select value={newLodge.role} onChange={e=>setNewLodge({...newLodge, role:e.target.value})}>
+                {LODGE_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+              {newLodge.role === "Other" && (
+                <input placeholder="Specify role" value={newLodge.roleOther||""} onChange={e=>setNewLodge({...newLodge, roleOther:e.target.value})}/>
+              )}
+            </div>
+            <div><label>Lodge</label><input placeholder="e.g., Corinthian Lodge No. 123" value={newLodge.lodge} onChange={e=>setNewLodge({...newLodge, lodge:e.target.value})}/></div>
+            <div><label>Start</label><input type="date" value={newLodge.startDate} onChange={e=>setNewLodge({...newLodge, startDate:e.target.value})}/></div>
+            <div><label>End</label><input type="date" value={newLodge.endDate} onChange={e=>setNewLodge({...newLodge, endDate:e.target.value})}/></div>
+            <div><button className="primary" onClick={addLodgeOffice}>Add office</button></div>
+          </div>
+        </div>
+
+        {/* Existing list */}
         <div className="offices-table">
           <table>
             <thead>
@@ -198,11 +230,11 @@ function OfficesCard({ profile, update }){
           </table>
         </div>
 
-        {/* Mobile cards */}
+        {/* Mobile cards for existing */}
         <div className="office-cards">
           {lodgeOffices.map(o => (
             <div className="office-card" key={o.id}>
-              <h5>Lodge Office</h5>
+              <h5>Existing Lodge Office</h5>
               <div className="row">
                 <div>
                   <label>Role</label>
@@ -221,17 +253,33 @@ function OfficesCard({ profile, update }){
             </div>
           ))}
         </div>
-
-        <div className="controls">
-          <button disabled={!edit} className="primary" onClick={addLodgeOffice}>Add lodge office</button>
-        </div>
       </div>
 
       {/* Grand Lodge Offices SECOND */}
       <div className="card" style={{padding:12, marginTop:12}}>
         <h4 style={{margin:'0 0 8px 0'}}>Grand Lodge Offices</h4>
 
-        {/* Desktop table */}
+        {/* Add new GL Office (always enabled) */}
+        <div className="office-card" style={{marginBottom:10, borderStyle:'dashed'}}>
+          <h5>Add a new Grand Lodge Office</h5>
+          <div className="row">
+            <div>
+              <label>Role</label>
+              <select value={newGL.role} onChange={e=>setNewGL({...newGL, role:e.target.value})}>
+                {GL_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+              {newGL.role === "Other" && (
+                <input placeholder="Specify role" value={newGL.roleOther||""} onChange={e=>setNewGL({...newGL, roleOther:e.target.value})}/>
+              )}
+            </div>
+            <div><label>Notes / Region</label><input placeholder="District or notes" value={newGL.notes} onChange={e=>setNewGL({...newGL, notes:e.target.value})}/></div>
+            <div><label>Start</label><input type="date" value={newGL.startDate} onChange={e=>setNewGL({...newGL, startDate:e.target.value})}/></div>
+            <div><label>End</label><input type="date" value={newGL.endDate} onChange={e=>setNewGL({...newGL, endDate:e.target.value})}/></div>
+            <div><button className="primary" onClick={addGLOffice}>Add office</button></div>
+          </div>
+        </div>
+
+        {/* Existing GL list */}
         <div className="offices-table">
           <table>
             <thead>
@@ -264,11 +312,11 @@ function OfficesCard({ profile, update }){
           </table>
         </div>
 
-        {/* Mobile cards */}
+        {/* Mobile cards for existing */}
         <div className="office-cards">
           {glOffices.map(o => (
             <div className="office-card" key={o.id}>
-              <h5>Grand Lodge Office</h5>
+              <h5>Existing Grand Lodge Office</h5>
               <div className="row">
                 <div>
                   <label>Role</label>
@@ -287,10 +335,6 @@ function OfficesCard({ profile, update }){
             </div>
           ))}
         </div>
-
-        <div className="controls">
-          <button disabled={!edit} className="primary" onClick={addGLOffice}>Add GL office</button>
-        </div>
       </div>
 
       {/* Grand Rank LAST */}
@@ -299,20 +343,20 @@ function OfficesCard({ profile, update }){
         <div className="row" style={{alignItems:"center"}}>
           <div style={{flex:1}}>
             <label>Current Grand Rank</label>
-            <RankSelect disabled={!edit} value={profile.currentGrandRank} onChange={(v)=>update({currentGrandRank:v})}/>
+            <RankSelect value={profile.currentGrandRank} onChange={(v)=>update({currentGrandRank:v})}/>
           </div>
           <div style={{flex:1}}>
             <label>Past Grand Rank</label>
-            <RankSelect disabled={!edit} value={profile.pastGrandRank} onChange={(v)=>update({pastGrandRank:v})}/>
+            <RankSelect value={profile.pastGrandRank} onChange={(v)=>update({pastGrandRank:v})}/>
           </div>
         </div>
         <div className="controls">
           <label className="pill">
-            <input disabled={!edit} type="checkbox" checked={profile.autoPrefix} onChange={(e)=>update({autoPrefix:e.target.checked})}/>
+            <input type="checkbox" checked={profile.autoPrefix} onChange={(e)=>update({autoPrefix:e.target.checked})}/>
             Auto prefix
           </label>
           {!profile.autoPrefix && (
-            <select disabled={!edit} style={{maxWidth:180}} value={profile.manualPrefix} onChange={(e)=>update({manualPrefix:e.target.value})}>
+            <select style={{maxWidth:180}} value={profile.manualPrefix} onChange={(e)=>update({manualPrefix:e.target.value})}>
               {PREFIX_ORDER.map(p => <option key={p} value={p}>{p}</option>)}
             </select>
           )}
