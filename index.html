@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Freemasons NZ Passport</title>
+    <link rel="icon" href="/favicon.svg">
+    <style>
+      * { box-sizing: border-box; }
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 0; background:#0e1116; color:#e8ecf1; }
+      header { display:flex; align-items:center; gap:12px; padding:16px 20px; background:#0a0d11; border-bottom:1px solid #1a2230; position:sticky; top:0; z-index:10; }
+      header img { height:32px; }
+      .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+      .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+      .card { background:#111621; border:1px solid #1a2230; border-radius:14px; padding:16px; }
+      .card h3 { margin:0 0 10px 0; font-size: 18px; }
+      label { display:block; font-size: 13px; margin: 10px 0 6px; opacity: .9; }
+      input, select { width:100%; padding:10px 12px; background:#0d131d; border:1px solid #263247; color:#e8ecf1; border-radius:10px; }
+      .row { display:flex; gap:10px; }
+      .row > * { flex:1; }
+      .pill { display:inline-flex; align-items:center; gap:8px; border:1px solid #2b3b56; background:#0d1420; border-radius:999px; padding:8px 12px; font-size:13px; }
+      .muted { opacity:.8; font-size: 12px; }
+      .name-line { font-size: 22px; font-weight: 700; letter-spacing:.2px; }
+      table { width:100%; border-collapse: collapse; margin-top:10px; }
+      th, td { border-bottom:1px solid #1a2230; padding:10px; text-align:left; font-size: 14px; }
+      .badge { padding: 2px 8px; border-radius: 999px; font-size: 12px; border:1px solid #2b3b56; }
+      .ok { background:#0d2014; border-color:#284932; }
+      .resigned { background:#20140d; border-color:#493228; }
+      .controls { display:flex; gap:8px; align-items:center; margin-top:8px; }
+      button { padding:10px 12px; border-radius:10px; border:1px solid #2b3b56; background:#0d1420; color:#e8ecf1; cursor:pointer; }
+      button.primary { background:#1a4fff; border-color:#1a4fff; }
+      .footer { margin-top: 20px; opacity:.7; font-size: 12px; }
+      .code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <img src="/logo.svg" alt="Freemasons NZ" />
+      <div>
+        <div style="font-weight:700">Freemasons NZ Passport</div>
+        <div class="muted">Demo build for testing (local storage only)</div>
+      </div>
+    </header>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
