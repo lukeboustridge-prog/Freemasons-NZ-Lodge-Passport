@@ -59,7 +59,25 @@
         .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 18px; }
         .tabbar { display:none; }
       }
-    </style>
+    
+      /* Mobile cards for Offices (avoid horizontal scroll) */
+      .table-wrap { overflow-x: auto; }
+      .office-cards { display: grid; gap: 10px; }
+      .office-card { background: var(--panel); border:1px solid var(--border); border-radius:12px; padding:12px; }
+      .office-card .row { display:grid; grid-template-columns: 1fr; gap:10px; }
+      .office-card .row > div { width: 100%; }
+      .office-card h5 { margin: 0 0 8px 0; font-size: 14px; color: var(--muted); }
+
+      /* Show tables only on wider screens */
+      @media (max-width: 859px) {
+        .offices-table { display:none; }
+        .office-cards { display:grid; }
+      }
+      @media (min-width: 860px) {
+        .office-cards { display:none; }
+        .offices-table { display:block; }
+      }
+        </style>
   </head>
   <body>
     <header>

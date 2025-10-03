@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { BOC_RANKS, PREFIX_ORDER, maxPrefix } from "./bocMapping";
 
-const storeKey = "fnz-passport-demo-v6";
+const storeKey = "fnz-passport-demo-v7";
 const saveState = (s) => localStorage.setItem(storeKey, JSON.stringify(s));
 const loadState = () => { try { return JSON.parse(localStorage.getItem(storeKey)) ?? null; } catch { return null; } };
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -23,21 +23,21 @@ const RankSelect = ({ value, onChange, disabled }) => (
   </select>
 );
 
-// Static options
+// Lodge roles in reverse order as requested (including Deputy Master)
 const LODGE_ROLES = [
+  "Inner Guard",
+  "Junior Deacon",
+  "Senior Deacon",
+  "Junior Warden",
+  "Senior Warden",
   "Worshipful Master",
   "Immediate Past Master",
-  "Senior Warden",
-  "Junior Warden",
-  "Treasurer",
-  "Secretary",
+  "Deputy Master",
   "Director of Ceremonies",
   "Almoner",
   "Chaplain",
-  "Senior Deacon",
-  "Junior Deacon",
-  "Inner Guard",
-  "Tyler",
+  "Treasurer",
+  "Secretary",
   "Organist",
   "Other"
 ];
@@ -82,7 +82,7 @@ function ProfileCard({ profile, update }){
         <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
           <h3 style={{margin:0}}>Lodges</h3>
         </div>
-        <table><thead><tr><th style={{width:"45%"}}>Lodge</th><th style={{width:"22%"}}>Status</th><th style={{width:"33%"}}>Resigned date</th></tr></thead>
+        <table className="offices-table"><thead><tr><th>Lodge</th><th>Status</th><th>Resigned date</th></tr></thead>
         <tbody>
           {profile.lodges.map((lg, idx)=>(
             <tr key={idx}>
@@ -102,6 +102,31 @@ function ProfileCard({ profile, update }){
             </tr>
           ))}
         </tbody></table>
+
+        {/* Mobile cards */}
+        <div className="office-cards">
+          {profile.lodges.map((lg, idx)=> (
+            <div className="office-card" key={idx}>
+              <h5>Lodge</h5>
+              <div className="row">
+                <div><label>Name</label><input disabled={!edit} value={lg.name} onChange={e=>{
+                  const c=[...profile.lodges]; c[idx]={...c[idx], name:e.target.value}; update({lodges:c});
+                }}/></div>
+                <div><label>Status</label>
+                  <select disabled={!edit} value={lg.status} onChange={e=>{
+                    const c=[...profile.lodges]; c[idx]={...c[idx], status:e.target.value}; update({lodges:c});
+                  }}>
+                    <option>Active</option><option>Resigned</option>
+                  </select>
+                </div>
+                <div><label>Resigned</label><input disabled={!edit} type="date" value={lg.resignedDate} onChange={e=>{
+                  const c=[...profile.lodges]; c[idx]={...c[idx], resignedDate:e.target.value}; update({lodges:c});
+                }}/></div>
+              </div>
+            </div>
+          ))}
+        </div>
+
         <div className="controls">
           <button disabled={!edit} className="primary" onClick={()=>update({lodges:[...profile.lodges,{name:"",status:"Active",resignedDate:""}]})}>Add lodge</button>
           <button disabled={!edit || profile.lodges.length===0} onClick={()=>update({lodges: profile.lodges.slice(0,-1)})}>Remove last</button>
@@ -121,7 +146,7 @@ function OfficesCard({ profile, update }){
   const lodgeOffices = offices.filter(o => o.level === "Lodge");
   const glOffices = offices.filter(o => o.level === "Grand Lodge");
 
-  const addLodgeOffice = () => setOffices([{ id: uid(), level:"Lodge", role:"Worshipful Master", lodge:"", startDate:"", endDate:"", roleOther:"" }, ...offices]);
+  const addLodgeOffice = () => setOffices([{ id: uid(), level:"Lodge", role:"Inner Guard", lodge:"", startDate:"", endDate:"", roleOther:"" }, ...offices]);
   const addGLOffice = () => setOffices([{ id: uid(), level:"Grand Lodge", role:"Grand Sword Bearer", lodge:"", startDate:"", endDate:"", roleOther:"" }, ...offices]);
 
   const updateOffice = (id, patch) => setOffices(offices.map(o => o.id === id ? ({...o, ...patch}) : o));
@@ -139,35 +164,64 @@ function OfficesCard({ profile, update }){
       {/* Lodge Offices FIRST */}
       <div className="card" style={{padding:12, marginTop:12}}>
         <h4 style={{margin:'0 0 8px 0'}}>Lodge Offices</h4>
-        <table>
-          <thead>
-            <tr>
-              <th style={{width:"28%"}}>Role</th>
-              <th style={{width:"28%"}}>Lodge</th>
-              <th style={{width:"18%"}}>Start</th>
-              <th style={{width:"18%"}}>End</th>
-              <th style={{width:"8%"}}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {lodgeOffices.map(o => (
-              <tr key={o.id}>
-                <td>
+
+        {/* Desktop table */}
+        <div className="offices-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Role</th>
+                <th>Lodge</th>
+                <th>Start</th>
+                <th>End</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {lodgeOffices.map(o => (
+                <tr key={o.id}>
+                  <td>
+                    <select disabled={!edit} value={o.role} onChange={e=>updateOffice(o.id,{role:e.target.value})}>
+                      {LODGE_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                    {o.role === "Other" && (
+                      <input disabled={!edit} placeholder="Specify role" value={o.roleOther||""} onChange={e=>updateOffice(o.id,{roleOther:e.target.value})}/>
+                    )}
+                  </td>
+                  <td><input disabled={!edit} value={o.lodge} onChange={e=>updateOffice(o.id,{lodge:e.target.value})}/></td>
+                  <td><input disabled={!edit} type="date" value={o.startDate} onChange={e=>updateOffice(o.id,{startDate:e.target.value})}/></td>
+                  <td><input disabled={!edit} type="date" value={o.endDate} onChange={e=>updateOffice(o.id,{endDate:e.target.value})}/></td>
+                  <td><button disabled={!edit} onClick={()=>removeOffice(o.id)}>✕</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile cards */}
+        <div className="office-cards">
+          {lodgeOffices.map(o => (
+            <div className="office-card" key={o.id}>
+              <h5>Lodge Office</h5>
+              <div className="row">
+                <div>
+                  <label>Role</label>
                   <select disabled={!edit} value={o.role} onChange={e=>updateOffice(o.id,{role:e.target.value})}>
                     {LODGE_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
                   </select>
                   {o.role === "Other" && (
                     <input disabled={!edit} placeholder="Specify role" value={o.roleOther||""} onChange={e=>updateOffice(o.id,{roleOther:e.target.value})}/>
                   )}
-                </td>
-                <td><input disabled={!edit} value={o.lodge} onChange={e=>updateOffice(o.id,{lodge:e.target.value})}/></td>
-                <td><input disabled={!edit} type="date" value={o.startDate} onChange={e=>updateOffice(o.id,{startDate:e.target.value})}/></td>
-                <td><input disabled={!edit} type="date" value={o.endDate} onChange={e=>updateOffice(o.id,{endDate:e.target.value})}/></td>
-                <td><button disabled={!edit} onClick={()=>removeOffice(o.id)}>✕</button></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </div>
+                <div><label>Lodge</label><input disabled={!edit} value={o.lodge} onChange={e=>updateOffice(o.id,{lodge:e.target.value})}/></div>
+                <div><label>Start</label><input disabled={!edit} type="date" value={o.startDate} onChange={e=>updateOffice(o.id,{startDate:e.target.value})}/></div>
+                <div><label>End</label><input disabled={!edit} type="date" value={o.endDate} onChange={e=>updateOffice(o.id,{endDate:e.target.value})}/></div>
+                <div><button disabled={!edit} onClick={()=>removeOffice(o.id)}>Remove</button></div>
+              </div>
+            </div>
+          ))}
+        </div>
+
         <div className="controls">
           <button disabled={!edit} className="primary" onClick={addLodgeOffice}>Add lodge office</button>
         </div>
@@ -176,35 +230,64 @@ function OfficesCard({ profile, update }){
       {/* Grand Lodge Offices SECOND */}
       <div className="card" style={{padding:12, marginTop:12}}>
         <h4 style={{margin:'0 0 8px 0'}}>Grand Lodge Offices</h4>
-        <table>
-          <thead>
-            <tr>
-              <th style={{width:"30%"}}>Role</th>
-              <th style={{width:"30%"}}>Notes / Region</th>
-              <th style={{width:"18%"}}>Start</th>
-              <th style={{width:"18%"}}>End</th>
-              <th style={{width:"8%"}}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {glOffices.map(o => (
-              <tr key={o.id}>
-                <td>
+
+        {/* Desktop table */}
+        <div className="offices-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Role</th>
+                <th>Notes / Region</th>
+                <th>Start</th>
+                <th>End</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {glOffices.map(o => (
+                <tr key={o.id}>
+                  <td>
+                    <select disabled={!edit} value={o.role} onChange={e=>updateOffice(o.id,{role:e.target.value})}>
+                      {GL_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                    {o.role === "Other" && (
+                      <input disabled={!edit} placeholder="Specify role" value={o.roleOther||""} onChange={e=>updateOffice(o.id,{roleOther:e.target.value})}/>
+                    )}
+                  </td>
+                  <td><input disabled={!edit} placeholder="District/Notes" value={o.lodge||""} onChange={e=>updateOffice(o.id,{lodge:e.target.value})}/></td>
+                  <td><input disabled={!edit} type="date" value={o.startDate} onChange={e=>updateOffice(o.id,{startDate:e.target.value})}/></td>
+                  <td><input disabled={!edit} type="date" value={o.endDate} onChange={e=>updateOffice(o.id,{endDate:e.target.value})}/></td>
+                  <td><button disabled={!edit} onClick={()=>removeOffice(o.id)}>✕</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile cards */}
+        <div className="office-cards">
+          {glOffices.map(o => (
+            <div className="office-card" key={o.id}>
+              <h5>Grand Lodge Office</h5>
+              <div className="row">
+                <div>
+                  <label>Role</label>
                   <select disabled={!edit} value={o.role} onChange={e=>updateOffice(o.id,{role:e.target.value})}>
                     {GL_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
                   </select>
                   {o.role === "Other" && (
                     <input disabled={!edit} placeholder="Specify role" value={o.roleOther||""} onChange={e=>updateOffice(o.id,{roleOther:e.target.value})}/>
                   )}
-                </td>
-                <td><input disabled={!edit} placeholder="District/Notes" value={o.lodge||""} onChange={e=>updateOffice(o.id,{lodge:e.target.value})}/></td>
-                <td><input disabled={!edit} type="date" value={o.startDate} onChange={e=>updateOffice(o.id,{startDate:e.target.value})}/></td>
-                <td><input disabled={!edit} type="date" value={o.endDate} onChange={e=>updateOffice(o.id,{endDate:e.target.value})}/></td>
-                <td><button disabled={!edit} onClick={()=>removeOffice(o.id)}>✕</button></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </div>
+                <div><label>Notes / Region</label><input disabled={!edit} placeholder="District/Notes" value={o.lodge||""} onChange={e=>updateOffice(o.id,{lodge:e.target.value})}/></div>
+                <div><label>Start</label><input disabled={!edit} type="date" value={o.startDate} onChange={e=>updateOffice(o.id,{startDate:e.target.value})}/></div>
+                <div><label>End</label><input disabled={!edit} type="date" value={o.endDate} onChange={e=>updateOffice(o.id,{endDate:e.target.value})}/></div>
+                <div><button disabled={!edit} onClick={()=>removeOffice(o.id)}>Remove</button></div>
+              </div>
+            </div>
+          ))}
+        </div>
+
         <div className="controls">
           <button disabled={!edit} className="primary" onClick={addGLOffice}>Add GL office</button>
         </div>
@@ -343,7 +426,7 @@ function VisitsCard({ profile, update }){
       <div className="controls"><button disabled={!edit} className="primary" onClick={addVisit}>Add visit</button></div>
 
       <table style={{marginTop:8}}>
-        <thead><tr><th style={{width:"18%"}}>Date</th><th style={{width:"42%"}}>Lodge</th><th style={{width:"32%"}}>Notes</th><th style={{width:"8%"}}></th></tr></thead>
+        <thead><tr><th>Date</th><th>Lodge</th><th>Notes</th><th></th></tr></thead>
         <tbody>
           {profile.visits.map(v => (
             <tr key={v.id}>
@@ -407,14 +490,14 @@ function SettingsCard({ profile, setProfile }){
 
 /* ---------------- App Shell ---------------- */
 export default function App(){
-  const [tab, setTab] = useState("dashboard"); // dashboard | profile | offices | milestones | visits | settings
+  const [tab, setTab] = useState("offices"); // default to Offices for quick testing
   const [profile, setProfile] = useState(() => loadState() ?? {
     firstName: "Luke", lastName: "Boustridge", autoPrefix: true, manualPrefix: "Bro",
     currentGrandRank: "GSWB", pastGrandRank: "NONE",
     milestones: { initiatedDate:"", passedDate:"", raisedDate:"", installedDate:"" },
     lodges: [{ name: "Corinthian Lodge No. 123", status: "Active", resignedDate: "" }],
     offices: [
-      { id: uid(), level:"Lodge", role:"Worshipful Master", lodge:"Corinthian Lodge No. 123", startDate:"2023-06-01", endDate:"" },
+      { id: uid(), level:"Lodge", role:"Inner Guard", lodge:"Corinthian Lodge No. 123", startDate:"2023-06-01", endDate:"" },
       { id: uid(), level:"Grand Lodge", role:"Grand Sword Bearer", lodge:"", startDate:"2024-04-01", endDate:"" }
     ],
     visits: [{ id: uid(), date: "2025-09-10", lodge: "Example Lodge No. 99", notes: "Installation" }]
