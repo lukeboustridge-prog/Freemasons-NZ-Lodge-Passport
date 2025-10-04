@@ -2,31 +2,10 @@ import React from "react";
 import FMNZLogo from "../components/Logo";
 import { SectionCard } from "../components/SectionCard";
 
-export type LodgeMembership = {
-  id: string;
-  lodgeName: string;
-  status: "Current" | "Resigned" | "Past";
-  startDate?: string;
-  endDate?: string;
-};
+export type LodgeMembership = { id: string; lodgeName: string; status: "Current" | "Resigned" | "Past"; startDate?: string; endDate?: string; };
+export type Office = { id: string; scope: "Lodge" | "Grand"; lodgeName?: string; officeName: string; startDate: string; endDate?: string; isCurrent: boolean; };
 
-export type Office = {
-  id: string;
-  scope: "Lodge" | "Grand";
-  lodgeName?: string;
-  officeName: string;
-  startDate: string;
-  endDate?: string;
-  isCurrent: boolean;
-};
-
-export default function Dashboard({
-  memberships,
-  offices,
-}: {
-  memberships: LodgeMembership[];
-  offices: Office[];
-}) {
+export default function Dashboard({ memberships, offices }: { memberships: LodgeMembership[]; offices: Office[]; }) {
   const currentMemberships = memberships.filter((m) => m.status === "Current");
   const currentLodgeOffices = offices.filter((o) => o.scope === "Lodge" && o.isCurrent);
   const currentGrandOffices = offices.filter((o) => o.scope === "Grand" && o.isCurrent);
@@ -44,9 +23,7 @@ export default function Dashboard({
             <li key={m.id} className="py-2">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3">
                 <span className="font-medium truncate">{m.lodgeName}</span>
-                <span className="text-sm text-gray-500 sm:whitespace-nowrap">
-                  {m.startDate} {m.endDate ? `– ${m.endDate}` : ""}
-                </span>
+                <span className="text-sm text-gray-500 sm:whitespace-nowrap">{m.startDate} {m.endDate ? `– ${m.endDate}` : ""}</span>
               </div>
             </li>
           ))}
