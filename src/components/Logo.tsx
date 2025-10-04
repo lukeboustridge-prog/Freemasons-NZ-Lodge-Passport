@@ -1,4 +1,3 @@
-// Use Vite asset import so GitHub Pages gets the correct base-prefixed path.
 import React from "react";
 import logoUrl from "/fmnz-logo.png";
 
