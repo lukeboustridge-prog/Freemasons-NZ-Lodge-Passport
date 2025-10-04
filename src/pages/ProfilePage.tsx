@@ -1,7 +1,7 @@
 import React from "react";
 import { useProfile } from "../context/ProfileContext";
 import { useOffices, computePrefix, computePostNominals } from "../context/OfficesContext";
-import { useLodges, Lodge } from "../context/LodgesContext";
+import { useLodges, Lodge, formatLodgeName } from "../context/LodgesContext";
 import { SectionCard } from "../components/SectionCard";
 
 export default function ProfilePage() {
@@ -21,6 +21,7 @@ export default function ProfilePage() {
   const [draft, setDraft] = React.useState<Lodge>({
     id: crypto.randomUUID(),
     name: "",
+    lodgeNumber: "",
     joinDate: new Date().toISOString().slice(0,10),
   });
 
@@ -46,7 +47,7 @@ export default function ProfilePage() {
       <div className="rounded-xl border border-gray-200 bg-white">
         <button className="w-full text-left px-3 py-2 flex items-center justify-between" onClick={()=>setOpen(v=>!v)}>
           <div className="min-w-0">
-            <div className="font-medium truncate">{l.name}</div>
+            <div className="font-medium truncate">{formatLodgeName(l)}</div>
             <div className="text-sm text-gray-500 truncate">
               {l.joinDate}{l.resignedDate ? " – " + l.resignedDate : ""}
             </div>
@@ -65,6 +66,10 @@ export default function ProfilePage() {
                   <label className="flex flex-col gap-1 text-sm">
                     <span className="font-medium">Lodge name</span>
                     <input className="rounded-lg border border-gray-300 px-3 py-2" value={form.name} onChange={(e)=>setForm({...form, name: e.target.value})} />
+                  </label>
+                  <label className="flex flex-col gap-1 text-sm">
+                    <span className="font-medium">Lodge number</span>
+                    <input className="rounded-lg border border-gray-300 px-3 py-2" value={form.lodgeNumber || ""} onChange={(e)=>setForm({...form, lodgeNumber: e.target.value})} placeholder="e.g., 123" />
                   </label>
                   <label className="flex flex-col gap-1 text-sm">
                     <span className="font-medium">Join date</span>
@@ -140,10 +145,14 @@ export default function ProfilePage() {
               <input className="rounded-lg border border-gray-300 px-3 py-2" value={draft.name} onChange={(e)=>setDraft({...draft, name: e.target.value})} />
             </label>
             <label className="flex flex-col gap-1 text-sm">
+              <span className="font-medium">Lodge number</span>
+              <input className="rounded-lg border border-gray-300 px-3 py-2" value={draft.lodgeNumber || ""} onChange={(e)=>setDraft({...draft, lodgeNumber: e.target.value})} placeholder="e.g., 123" />
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
               <span className="font-medium">Join date</span>
               <input type="date" className="rounded-lg border border-gray-300 px-3 py-2" value={draft.joinDate} onChange={(e)=>setDraft({...draft, joinDate: e.target.value})} />
             </label>
-            <label className="flex flex-col gap-1 text-sm sm:col-span-2">
+            <label className="flex flex-col gap-1 text-sm">
               <span className="font-medium">Resigned date (optional)</span>
               <input type="date" className="rounded-lg border border-gray-300 px-3 py-2" value={draft.resignedDate || ""} onChange={(e)=>setDraft({...draft, resignedDate: e.target.value})} />
             </label>

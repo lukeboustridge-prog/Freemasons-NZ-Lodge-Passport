@@ -2,7 +2,7 @@ import React from "react";
 import { SectionCard } from "../components/SectionCard";
 import { useProfile } from "../context/ProfileContext";
 import { useOffices, computePrefix, computePostNominals } from "../context/OfficesContext";
-import { useLodges } from "../context/LodgesContext";
+import { useLodges, formatLodgeName } from "../context/LodgesContext";
 
 export type Office = { id: string; scope: "Lodge" | "Grand"; lodgeName?: string; officeName: string; startDate: string; endDate?: string; isCurrent: boolean; };
 
@@ -31,7 +31,7 @@ export default function Dashboard({ offices: officesProp }: { offices: Office[];
           {currentMemberships.map((m) => (
             <li key={m.id} className="py-2">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3">
-                <span className="font-medium truncate">{m.name}</span>
+                <span className="font-medium truncate">{formatLodgeName(m)}</span>
                 <span className="text-sm text-gray-500 sm:whitespace-nowrap">{m.joinDate} {m.resignedDate ? `– ${m.resignedDate}` : ""}</span>
               </div>
             </li>

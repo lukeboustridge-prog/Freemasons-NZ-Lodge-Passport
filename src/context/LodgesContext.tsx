@@ -3,7 +3,8 @@ import React from "react";
 export type Lodge = {
   id: string;
   name: string;
-  joinDate: string;     // YYYY-MM-DD
+  lodgeNumber?: string;  // e.g., "No. 123" or just "123"
+  joinDate: string;      // YYYY-MM-DD
   resignedDate?: string;
 };
 
@@ -23,4 +24,13 @@ export function useLodges() {
   const ctx = React.useContext(LodgesCtx);
   if (!ctx) throw new Error("useLodges must be used within LodgesProvider");
   return ctx;
+}
+
+// formatting helper
+export function formatLodgeName(l: Lodge) {
+  const num = (l.lodgeNumber || "").toString().trim();
+  if (!num) return l.name;
+  const hasNo = /^no\.?\s*/i.test(num);
+  const clean = hasNo ? num : ("No. " + num);
+  return l.name + " " + clean;
 }

@@ -1,4 +1,5 @@
 import React from "react";
+import { GRAND_OFFICES_ORDERED } from "../data/offices";
 
 export type Office = {
   id: string;
@@ -24,11 +25,46 @@ export function useOffices() {
   return ctx;
 }
 
-// Prefix rules:
-export function computePrefix(offices: Office[]): "MW Bro" | "RW Bro" | "W Bro" | "Bro" {
+function titleIncludes(o: Office, s: string) {
+  return o.officeName.toLowerCase().includes(s.toLowerCase());
+}
+
+function grandSeniorityIndex(title: string) {
+  const idx = GRAND_OFFICES_ORDERED.findIndex(t => title.toLowerCase().includes(t.toLowerCase()));
+  return idx === -1 ? -1 : idx;
+}
+
+function mostRecentOrMostSeniorGrand(offices: Office[]): Office | undefined {
+  const pastGrand = offices.filter(o => o.scope === "Grand" && !o.isCurrent);
+  if (pastGrand.length === 0) return undefined;
+  // Most recent by startDate
+  const sorted = [...pastGrand].sort((a, b) => (b.startDate || "").localeCompare(a.startDate || ""));
+  // If dates equal or missing, prefer more senior (higher in ordered list -> larger index)
+  sorted.sort((a, b) => {
+    const ai = grandSeniorityIndex(a.officeName);
+    const bi = grandSeniorityIndex(b.officeName);
+    return bi - ai;
+  });
+  return sorted[0];
+}
+
+function prefixForGrandOffice(o: Office): "MW Bro" | "RW Bro" | "VW Bro" {
+  if (titleIncludes(o, "Grand Master")) return "MW Bro";
+  if (titleIncludes(o, "Deputy Grand Master")) return "RW Bro";
+  if (titleIncludes(o, "Senior Grand Warden") || titleIncludes(o, "Junior Grand Warden")) return "RW Bro";
+  // All other Grand offices → VW Bro
+  return "VW Bro";
+}
+
+// Public helper
+export function computePrefix(offices: Office[]): "MW Bro" | "RW Bro" | "VW Bro" | "W Bro" | "Bro" {
+  const currentGrand = offices.find(o => o.scope === "Grand" && o.isCurrent);
+  if (currentGrand) return prefixForGrandOffice(currentGrand);
+
+  const pastGrandBest = mostRecentOrMostSeniorGrand(offices);
+  if (pastGrandBest) return prefixForGrandOffice(pastGrandBest);
+
   const names = offices.map(o => o.officeName.toLowerCase());
-  if (names.some(n => n.includes("grand master"))) return "MW Bro";
-  if (offices.some(o => o.scope === "Grand")) return "RW Bro";
   if (names.some(n => n.includes("worshipful master") || n.includes("past master"))) return "W Bro";
   return "Bro";
 }
@@ -57,12 +93,13 @@ export const GRAND_ABBR: Record<string, string> = {
 };
 
 export function computePostNominals(offices: Office[]): string[] {
+  // prefer current grand, else use all grand (dedup)
   const grands = offices.filter(o => o.scope === "Grand");
+  if (grands.length === 0) return [];
   const dedup = new Set<string>();
   for (const g of grands) {
     let abbr = GRAND_ABBR[g.officeName];
     if (!abbr) {
-      // fuzzy match by contains
       const k = Object.keys(GRAND_ABBR).find(n => g.officeName.toLowerCase().includes(n.toLowerCase()));
       if (k) abbr = GRAND_ABBR[k];
     }

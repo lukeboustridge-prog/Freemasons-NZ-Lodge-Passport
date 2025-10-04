@@ -1,6 +1,6 @@
 import React from "react";
 import { useOffices, Office } from "../context/OfficesContext";
-import { useLodges } from "../context/LodgesContext";
+import { useLodges, formatLodgeName } from "../context/LodgesContext";
 import { SectionCard } from "../components/SectionCard";
 import { LODGE_OFFICES_ORDERED, GRAND_OFFICES_ORDERED } from "../data/offices";
 
@@ -67,7 +67,10 @@ export default function OfficesPage(){
     return (
       <select className="rounded-lg border border-gray-300 px-3 py-2" value={value} onChange={e=>onChange(e.target.value)}>
         <option value="">Select lodge…</option>
-        {lodges.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
+        {lodges.map(l => {
+          const label = formatLodgeName(l);
+          return <option key={l.id} value={label}>{label}</option>
+        })}
       </select>
     );
   }
