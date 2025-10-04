@@ -7,7 +7,7 @@ export default function SettingsPage(){
         <div className="px-4 py-3 sm:px-6 sm:py-4 space-y-3 text-sm">
           <label className="flex items-center gap-2">
             <input type="checkbox" defaultChecked className="rounded" />
-            Enable dark text (high contrast)
+            Enable high contrast
           </label>
           <label className="flex items-center gap-2">
             <input type="checkbox" className="rounded" />
