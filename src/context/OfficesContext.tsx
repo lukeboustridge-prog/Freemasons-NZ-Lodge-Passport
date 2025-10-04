@@ -1,6 +1,7 @@
 import React from "react";
 import { GRAND_OFFICES_ORDERED } from "../data/offices";
 
+/** Office model shared across features */
 export type Office = {
   id: string;
   scope: "Lodge" | "Grand";
@@ -25,15 +26,134 @@ export function useOffices() {
   return ctx;
 }
 
-// Utilities from your earlier mapping could be present elsewhere; here we keep only lodge fallback tweak.
-export function computePrefix(offices: Office[]): "MWBro" | "RWBro" | "VWBro" | "WBro" | "Bro" {
-  // If no Grand precedence in this simplified file, fall back to lodge titles:
+/** Mapping built from your table (supports current & past forms).
+ * Key is a lower-cased substring to match the title; value carries abbr, prefix, and an explicit seniority rank.
+ * Lower rank number = more junior; higher = more senior.
+ */
+type Prefix = "MWBro" | "RWBro" | "VWBro" | "WBro" | "Bro";
+type MapVal = { abbr: string; prefix: Prefix; rank: number; pastAbbr?: string };
+
+const GRAND_MAP: Record<string, MapVal> = {
+  // WBro tier (junior grand offices)
+  "grand stewards": { abbr: "GStwd", prefix: "WBro", rank: 1, pastAbbr: "PGStwd" },
+  "grand steward": { abbr: "GStwd", prefix: "WBro", rank: 1, pastAbbr: "PGStwd" },
+  "grand tyler": { abbr: "GTy", prefix: "WBro", rank: 2, pastAbbr: "PGTy" },
+  "grand inner guard": { abbr: "GIG", prefix: "WBro", rank: 3, pastAbbr: "PGIG" },
+  "grand organist": { abbr: "GOrg", prefix: "WBro", rank: 4, pastAbbr: "PGOrg" },
+  "grand standard bearer": { abbr: "GStB", prefix: "WBro", rank: 5, pastAbbr: "PGStB" },
+  "grand sword bearer": { abbr: "GSwB", prefix: "WBro", rank: 6, pastAbbr: "PGSwB" },
+  "grand bible bearer": { abbr: "GBB", prefix: "WBro", rank: 7, pastAbbr: "PGBB" },
+  "junior grand deacon": { abbr: "JGD", prefix: "WBro", rank: 8, pastAbbr: "PGD" },
+  "senior grand deacon": { abbr: "SGD", prefix: "WBro", rank: 9, pastAbbr: "PGD" },
+  "grand deacon": { abbr: "GD", prefix: "WBro", rank: 9, pastAbbr: "PGD" },
+  "district grand director of ceremonies": { abbr: "DGDC", prefix: "WBro", rank: 10, pastAbbr: "PDGDC" },
+  // VW tier
+  "assistant grand director of ceremonies": { abbr: "AGDC", prefix: "VWBro", rank: 20, pastAbbr: "PAGDC" },
+  "grand director of ceremonies": { abbr: "GDC", prefix: "VWBro", rank: 21, pastAbbr: "PGDC" },
+  "grand lecturer": { abbr: "GLec", prefix: "VWBro", rank: 22, pastAbbr: "PGLec" },
+  "grand superintendent of research & education": { abbr: "GSRE", prefix: "VWBro", rank: 23, pastAbbr: "PGSRE" },
+  "divisional grand almoner": { abbr: "DGA", prefix: "VWBro", rank: 24, pastAbbr: "PDGA" },
+  "grand superintendent of ceremonies": { abbr: "GSC", prefix: "VWBro", rank: 25, pastAbbr: "PGSC" },
+  "grand superintendent of works": { abbr: "GSW", prefix: "VWBro", rank: 26, pastAbbr: "PGSw" },
+  "grand treasurer": { abbr: "GT", prefix: "VWBro", rank: 27, pastAbbr: "PGT" },
+  "grand registrar": { abbr: "GReg", prefix: "VWBro", rank: 28, pastAbbr: "PGReg" },
+  "grand chaplain": { abbr: "GChap", prefix: "VWBro", rank: 29, pastAbbr: "PGChap" },
+  "grand secretary": { abbr: "GSec", prefix: "VWBro", rank: 30, pastAbbr: "PGSec" },
+  "grand superintendent of regions": { abbr: "GSR", prefix: "VWBro", rank: 31, pastAbbr: "PGSR" },
+  "district grand master": { abbr: "DGM", prefix: "VWBro", rank: 32, pastAbbr: "PDGM" },
+  "past presidents board of general purposes": { abbr: "PPBGP", prefix: "RWBro", rank: 33 },
+  "past president board of benevolence": { abbr: "PPBB", prefix: "RWBro", rank: 34 },
+  "past superintendent of the freemasons charity": { abbr: "PPSC", prefix: "RWBro", rank: 34 },
+  // RW tier
+  "divisional grand master": { abbr: "DGM", prefix: "RWBro", rank: 40, pastAbbr: "PDGM" },
+  "senior grand warden": { abbr: "SGW", prefix: "RWBro", rank: 41, pastAbbr: "PASGW" },
+  "junior grand warden": { abbr: "JGW", prefix: "RWBro", rank: 42, pastAbbr: "PAJGW" },
+  "past grand warden": { abbr: "PGW", prefix: "RWBro", rank: 39 },
+  "grand almoner": { abbr: "GA", prefix: "RWBro", rank: 38, pastAbbr: "PGA" },
+  "past grand almoner": { abbr: "PGA", prefix: "RWBro", rank: 38 },
+  "grand secretary (rw tier)": { abbr: "GSec", prefix: "RWBro", rank: 37, pastAbbr: "PGSec" },
+  "past grand secretary": { abbr: "PGSec", prefix: "RWBro", rank: 37 },
+  "deputy grand master": { abbr: "DGM", prefix: "RWBro", rank: 45, pastAbbr: "PDGM" },
+  "past deputy grand master": { abbr: "PDGM", prefix: "RWBro", rank: 44 },
+  "past provincial grand master": { abbr: "PProvGM", prefix: "RWBro", rank: 43 },
+  "past divisional grand master": { abbr: "PDGM", prefix: "RWBro", rank: 43 },
+  // MW tier
+  "grand master": { abbr: "GM", prefix: "MWBro", rank: 50, pastAbbr: "PGM" },
+  "pro grand master": { abbr: "PGM", prefix: "MWBro", rank: 49, pastAbbr: "PPGM" },
+  "past grand master": { abbr: "PGM", prefix: "MWBro", rank: 48 },
+  "past pro grand master": { abbr: "PPGM", prefix: "MWBro", rank: 47 },
+};
+
+function findGrandMap(title: string): MapVal | null {
+  const t = title.toLowerCase();
+  let best: MapVal | null = null;
+  let bestRank = -1;
+  for (const key of Object.keys(GRAND_MAP)) {
+    if (t.includes(key)) {
+      const m = GRAND_MAP[key];
+      if (m.rank > bestRank) {
+        best = m; bestRank = m.rank;
+      }
+    }
+  }
+  return best;
+}
+
+function grandSeniorityIndex(title: string) {
+  const idx = GRAND_OFFICES_ORDERED.findIndex(t => title.toLowerCase().includes(t.toLowerCase()));
+  return idx === -1 ? -1 : idx;
+}
+
+export function pickPrimaryGrandOffice(offices: Office[]): { office: Office | null; isPast: boolean } {
+  const current = offices.find(o => o.scope === "Grand" && o.isCurrent);
+  if (current) return { office: current, isPast: false };
+  const past = offices.filter(o => o.scope === "Grand" && !o.isCurrent);
+  if (past.length === 0) return { office: null, isPast: false };
+  const sorted = [...past].sort((a, b) => {
+    const sa = grandSeniorityIndex(a.officeName);
+    const sb = grandSeniorityIndex(b.officeName);
+    if (sa !== sb) return sb - sa; // more senior first
+    return (b.startDate || "").localeCompare(a.startDate || ""); // then most recent
+  });
+  return { office: sorted[0], isPast: true };
+}
+
+type MapVal = { abbr: string; prefix: Prefix; rank: number; pastAbbr?: string };
+type Prefix = "MWBro" | "RWBro" | "VWBro" | "WBro" | "Bro";
+
+export function computePrefix(offices: Office[]): Prefix {
+  const { office: primary } = pickPrimaryGrandOffice(offices);
+  if (primary) {
+    const m = findGrandMap(primary.officeName);
+    if (m) return m.prefix;
+  }
   const names = offices.map(o => o.officeName.toLowerCase());
-  const hasIPM = names.some(n => n.includes("immediate past master"));
-  const hasMaster = names.some(n => n.includes(" master") && !n.includes("deputy master")); // avoid Deputy Master
-  if (hasIPM || hasMaster) return "WBro";
+  if (names.some(n => n.includes("immediate past master") || (n.includes(" master") && !n.includes("deputy")))) return "WBro";
   return "Bro";
 }
 
-// Back-compat shim — still return single highest or empty; if you use the full GRAND mapping file it will override.
-export function computePostNominals(offices: Office[]): string[] { return []; }
+export function computeHighestPostNominal(offices: Office[]): string | null {
+  const { office: primary, isPast } = pickPrimaryGrandOffice(offices);
+  if (!primary) return null;
+  const m = findGrandMap(primary.officeName);
+  if (m) {
+    const abbr = isPast && m.pastAbbr ? m.pastAbbr : m.abbr;
+    return abbr;
+  }
+  return null;
+}
+
+export function computePostNominals(offices: Office[]): string[] {
+  const one = computeHighestPostNominal(offices);
+  return one ? [one] : [];
+}
+
+// ✅ Restore this export for Dashboard usage
+export function computeDisplayGrandTitleAndAbbr(offices: Office[]): { title: string | null; abbr: string | null } {
+  const { office: primary, isPast } = pickPrimaryGrandOffice(offices);
+  if (!primary) return { title: null, abbr: null };
+  const map = findGrandMap(primary.officeName);
+  const abbr = map ? (isPast && map.pastAbbr ? map.pastAbbr : map.abbr) : null;
+  const title = (isPast ? "Past " : "") + primary.officeName;
+  return { title, abbr };
+}
