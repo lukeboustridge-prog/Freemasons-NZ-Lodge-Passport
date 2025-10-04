@@ -7,23 +7,29 @@ export type Milestone = { id: string; date: string; type: "Initiation" | "Passin
 function MilestoneItem({ item, onUpdate, onDelete }: { item: Milestone; onUpdate: (m: Milestone) => void; onDelete?: (id: string) => void; }) {
   const [open, setOpen] = useState(false);
   const [edit, setEdit] = useState<Milestone>(item);
-  const header = (<div className="min-w-0"><div className="font-medium truncate">{item.type}</div><div className="text-sm text-gray-600">{item.date}</div></div>);
+  const header = (<div className="min-w-0"><div className="row-title">{item.type}</div><div className="row-sub">{item.date}</div></div>);
   return (
-    <RowShell open={open} onToggle={() => setOpen(!open)} header={header} actions={<button type="button" className="text-sm px-2 py-1 rounded-lg border" onClick={(e) => { e.stopPropagation(); setOpen(true); }}>Edit</button>}>
+    <RowShell open={open} onToggle={() => setOpen(!open)} header={header} actions={<button type="button" className="btn-ghost" onClick={(e) => { e.stopPropagation(); setOpen(true); }}>Edit</button>}>
       <form className="grid grid-cols-1 sm:grid-cols-2 gap-3" onSubmit={(e) => { e.preventDefault(); onUpdate(edit); setOpen(false); }}>
-        <label className="flex flex-col text-sm"><span className="mb-1 font-medium">Date</span>
-          <input type="date" value={edit.date} onChange={(e) => setEdit({ ...edit, date: e.target.value })} className="border rounded-xl px-3 py-2 w-full" required /></label>
-        <label className="flex flex-col text-sm"><span className="mb-1 font-medium">Type</span>
-          <select value={edit.type} onChange={(e) => setEdit({ ...edit, type: e.target.value as Milestone["type"] })} className="border rounded-xl px-3 py-2 w-full">
+        <label className="field">
+          <span>Date</span>
+          <input type="date" value={edit.date} onChange={(e) => setEdit({ ...edit, date: e.target.value })} className="input" required />
+        </label>
+        <label className="field">
+          <span>Type</span>
+          <select value={edit.type} onChange={(e) => setEdit({ ...edit, type: e.target.value as Milestone["type"] })} className="select">
             <option>Initiation</option><option>Passing</option><option>Raising</option><option>Installation</option><option>50 Year</option><option>60 Year</option><option>Other</option>
-          </select></label>
-        <label className="sm:col-span-2 flex flex-col text-sm"><span className="mb-1 font-medium">Notes</span>
-          <textarea value={edit.notes || ""} onChange={(e) => setEdit({ ...edit, notes: e.target.value })} className="border rounded-xl px-3 py-2 min-h-[88px] w-full" placeholder="Optional" /></label>
+          </select>
+        </label>
+        <label className="field sm:col-span-2">
+          <span>Notes</span>
+          <textarea value={edit.notes || ""} onChange={(e) => setEdit({ ...edit, notes: e.target.value })} className="textarea" placeholder="Optional" />
+        </label>
         <div className="sm:col-span-2 flex justify-between gap-2">
-          {onDelete ? <button type="button" onClick={() => onDelete(item.id)} className="px-3 py-2 rounded-xl border text-red-600">Delete</button> : <span />}
+          {onDelete ? <button type="button" onClick={() => onDelete(item.id)} className="btn-danger">Delete</button> : <span />}
           <div className="flex gap-2">
-            <button type="button" onClick={() => { setEdit(item); setOpen(false); }} className="px-3 py-2 rounded-xl border">Cancel</button>
-            <button type="submit" className="px-4 py-2 rounded-xl bg-blue-600 text-white">Save</button>
+            <button type="button" onClick={() => { setEdit(item); setOpen(false); }} className="btn-ghost">Cancel</button>
+            <button type="submit" className="btn-primary">Save</button>
           </div>
         </div>
       </form>
@@ -37,17 +43,23 @@ export function MilestonesScreen({ milestones, onSave, onUpdate, onDelete }: { m
     <main className="max-w-3xl mx-auto p-4 sm:p-6">
       <SectionCard title="Milestones">
         <form className="grid grid-cols-1 sm:grid-cols-2 gap-3" onSubmit={(e) => { e.preventDefault(); onSave({ ...form, id: crypto.randomUUID() }); setForm({ id: "new", date: "", type: "Initiation", notes: "" }); }}>
-          <label className="flex flex-col text-sm"><span className="mb-1 font-medium">Date</span>
-            <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="border rounded-xl px-3 py-2 w-full" required /></label>
-          <label className="flex flex-col text-sm"><span className="mb-1 font-medium">Type</span>
-            <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as Milestone["type"] })} className="border rounded-xl px-3 py-2 w-full">
+          <label className="field">
+            <span>Date</span>
+            <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="input" required />
+          </label>
+          <label className="field">
+            <span>Type</span>
+            <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as Milestone["type"] })} className="select">
               <option>Initiation</option><option>Passing</option><option>Raising</option><option>Installation</option><option>50 Year</option><option>60 Year</option><option>Other</option>
-            </select></label>
-          <label className="sm:col-span-2 flex flex-col text-sm"><span className="mb-1 font-medium">Notes</span>
-            <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="border rounded-xl px-3 py-2 min-h-[88px] w-full" placeholder="Optional" /></label>
+            </select>
+          </label>
+          <label className="field sm:col-span-2">
+            <span>Notes</span>
+            <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="textarea" placeholder="Optional" />
+          </label>
           <div className="sm:col-span-2 flex justify-end gap-2">
-            <button type="reset" onClick={() => setForm({ id: "new", date: "", type: "Initiation", notes: "" })} className="px-3 py-2 rounded-xl border">Clear</button>
-            <button type="submit" className="px-4 py-2 rounded-xl bg-blue-600 text-white">Add milestone</button>
+            <button type="reset" onClick={() => setForm({ id: "new", date: "", type: "Initiation", notes: "" })} className="btn-ghost">Clear</button>
+            <button type="submit" className="btn-primary">Add milestone</button>
           </div>
         </form>
         <div className="mt-6 space-y-2">
