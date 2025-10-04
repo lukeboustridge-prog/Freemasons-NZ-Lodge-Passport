@@ -12,6 +12,10 @@ import { OfficesProvider, Office } from "../context/OfficesContext";
 import { LodgesProvider, Lodge } from "../context/LodgesContext";
 import { VisitsProvider } from "../context/VisitsContext";
 import { MilestonesProvider, Milestone } from "../context/MilestonesContext";
+import PWAInstallPrompt from "../components/PWAInstallPrompt";
+import { registerServiceWorker } from "../sw-register";
+
+registerServiceWorker();
 
 export default function AppShell() {
   const offices: Office[] = [];
@@ -39,6 +43,7 @@ export default function AppShell() {
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                   </Routes>
                 </main>
+                <PWAInstallPrompt />
               </div>
             </MilestonesProvider>
           </VisitsProvider>

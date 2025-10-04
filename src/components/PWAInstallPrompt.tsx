@@ -9,22 +9,13 @@ function isStandalone(): boolean {
   const nav: any = navigator;
   return window.matchMedia("(display-mode: standalone)").matches || nav.standalone === true;
 }
-
-function isIOS(): boolean {
-  return /iphone|ipad|ipod/i.test(navigator.userAgent);
-}
-
-function isAndroid(): boolean {
-  return /android/i.test(navigator.userAgent);
-}
-
+function isIOS(): boolean { return /iphone|ipad|ipod/i.test(navigator.userAgent); }
 function snoozed(): boolean {
   const v = localStorage.getItem(SNOOZE_KEY);
   if (!v) return false;
   const until = Number(v);
   return Date.now() < until;
 }
-
 function snooze(days = 7) {
   const until = Date.now() + days * 24 * 60 * 60 * 1000;
   localStorage.setItem(SNOOZE_KEY, String(until));
@@ -38,7 +29,6 @@ export default function PWAInstallPrompt() {
   React.useEffect(() => {
     if (isStandalone() || localStorage.getItem(HIDE_KEY) === "1" || snoozed()) return;
 
-    // Android: capture beforeinstallprompt
     function onBIP(e: Event) {
       e.preventDefault();
       setDeferred(e as DeferEvt);
@@ -47,13 +37,11 @@ export default function PWAInstallPrompt() {
     }
     window.addEventListener("beforeinstallprompt", onBIP as any);
 
-    // iOS: no event — show guidance banner if Safari on iOS and not standalone
     if (isIOS()) {
       setPlatform("ios");
       setVisible(true);
     }
 
-    // If app becomes installed, hide
     function onAppInstalled() {
       setVisible(false);
       setDeferred(null);
@@ -97,12 +85,16 @@ export default function PWAInstallPrompt() {
                 className="px-3 py-2 rounded-lg bg-blue-600 text-white text-sm"
                 onClick={async () => {
                   if (!deferred) return;
-                  deferred.prompt();
-                  const choice = deferred.userChoice ? await deferred.userChoice : null;
-                  setDeferred(null);
-                  if (choice && choice.outcome === "accepted") {
-                    dismissForever();
-                  } else {
+                  (deferred as any).prompt?.();
+                  try {
+                    const choice = (deferred as any).userChoice ? await (deferred as any).userChoice : null;
+                    setDeferred(null);
+                    if (choice && choice.outcome === "accepted") {
+                      dismissForever();
+                    } else {
+                      remindLater();
+                    }
+                  } catch {
                     remindLater();
                   }
                 }}
