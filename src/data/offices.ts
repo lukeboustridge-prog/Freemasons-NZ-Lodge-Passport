@@ -1,3 +1,4 @@
+// Junior → senior
 export const LODGE_OFFICES_ORDERED: string[] = [
   "Tyler",
   "Inner Guard",
@@ -19,27 +20,40 @@ export const LODGE_OFFICES_ORDERED: string[] = [
 ];
 
 /**
- * Grand Offices — ordered junior → senior.
- * Based on BoC precedence, with the list beginning at "Grand Steward" per your instruction.
- * (We exclude all "Past ..." entries and any District/Provincial roles.)
+ * GRAND_OFFICES_ORDERED is used for precedence (junior → senior).
+ * Starts at Grand Steward as requested. Includes contemporary NZ roles.
  */
 export const GRAND_OFFICES_ORDERED: string[] = [
-  "Grand Steward",
+  "Grand Stewards",
+  "Grand Tyler",
   "Grand Inner Guard",
   "Grand Organist",
   "Grand Standard Bearer",
   "Grand Sword Bearer",
   "Grand Bible Bearer",
   "Grand Deacon",
+  "Junior Grand Deacon",
+  "Senior Grand Deacon",
+  "District Grand Director of Ceremonies",
   "Assistant Grand Director of Ceremonies",
   "Grand Director of Ceremonies",
+  "Grand Lecturer",
+  "Grand Superintendent of Research & Education",
+  "Divisional Grand Almoner",
   "Grand Superintendent of Ceremonies",
   "Grand Superintendent of Works",
-  "Grand Registrar",
   "Grand Treasurer",
+  "Grand Registrar",
+  "Grand Chaplain",
   "Grand Secretary",
+  "Grand Superintendent of Regions",
   "Junior Grand Warden",
   "Senior Grand Warden",
+  "District Grand Master",
+  "Divisional Grand Master",
+  "Past Presidents Board of General Purposes",
+  "Past President Board of Benevolence",
+  "Past Superintendent of the Freemasons Charity",
   "Deputy Grand Master",
   "Pro Grand Master",
   "Grand Master",
