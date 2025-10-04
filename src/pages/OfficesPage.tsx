@@ -16,7 +16,6 @@ export default function OfficesPage(){
   } as Office);
 
   React.useEffect(()=>{
-    // Keep officeName in sync with selected scope
     setDraft(d => ({
       ...d,
       officeName: d.scope === "Grand" ? GRAND_OFFICES_ORDERED[0] : LODGE_OFFICES_ORDERED[0],
@@ -48,6 +47,8 @@ export default function OfficesPage(){
     const [edit, setEdit] = React.useState(false);
     const [form, setForm] = React.useState<Office>(o);
     React.useEffect(()=>setForm(o), [o]);
+    const status = o.isCurrent ? "Current" : (o.endDate ? "Ended " + o.endDate : "Past");
+
     return (
       <div className="rounded-xl border border-gray-200 bg-white">
         <button className="w-full text-left px-3 py-2 flex items-center justify-between" onClick={()=>setOpen(v=>!v)}>
@@ -55,7 +56,7 @@ export default function OfficesPage(){
             <div className="font-medium truncate">{o.officeName}</div>
             <div className="text-sm text-gray-500 truncate">{o.scope === "Grand" ? "Grand Lodge" : (o.lodgeName || "Lodge")}</div>
           </div>
-          <div className="text-sm text-gray-600">{o.isCurrent ? "Current" : (o.endDate ? \`Ended \${o.endDate}\` : "Past")}</div>
+          <div className="text-sm text-gray-600">{status}</div>
         </button>
         {open && (
           <div className="px-3 pb-3 space-y-3">
