@@ -1,28 +1,23 @@
-// Junior → senior
+// Lodge offices — ordered as requested (junior → senior as per your list sequence)
 export const LODGE_OFFICES_ORDERED: string[] = [
-  "Tyler",
   "Inner Guard",
-  "Junior Steward",
-  "Senior Steward",
   "Junior Deacon",
   "Senior Deacon",
-  "Almoner",
-  "Organist",
-  "Chaplain",
-  "Assistant Director of Ceremonies",
-  "Director of Ceremonies",
-  "Treasurer",
-  "Secretary",
   "Junior Warden",
   "Senior Warden",
-  "Worshipful Master",
-  "Past Master",
+  "Deputy Master",
+  "Master",
+  "Immediate Past Master",
+  "Treasurer",
+  "Secretary",
+  "Director of Ceremonies",
+  "Chaplain",
+  "Organist",
+  "Almoner",
+  "Tyler",
 ];
 
-/**
- * GRAND_OFFICES_ORDERED is used for precedence (junior → senior).
- * Starts at Grand Steward as requested. Includes contemporary NZ roles.
- */
+// Grand list retained from previous mapping file; not included here to avoid conflicts if you already patched it.
 export const GRAND_OFFICES_ORDERED: string[] = [
   "Grand Stewards",
   "Grand Tyler",
