@@ -1,35 +1,24 @@
-FORCING A HOME‑SCREEN ICON (iOS + Android, GitHub Pages friendly)
+Force the EXACT FMNZ logo as the phone home-screen icon
 
-1) Copy everything in this ZIP to your repo root, preserving folders.
-   - public/manifest.webmanifest
-   - public/icons/app-180.png
-   - public/icons/app-192.png
-   - public/icons/app-512.png
-   - public/icons/app-maskable-512.png
+What this patch does
+- Sets the iOS apple-touch-icon to the exact FMNZ URL:
+  https://freemasonsnz.org/wp-content/uploads/2019/05/freemason_colour_standardonwhite.png
+  and keeps a local fallback tag right after it (for rare cross-origin blocks).
+- Sets the Android PWA manifest icons to prefer the same exact FMNZ URL,
+  with local fallbacks (192/512/maskable) still available.
 
-2) Edit your ROOT index.html <head> to include these lines (use RELATIVE paths):
-   <link rel="manifest" href="manifest.webmanifest">
-   <meta name="apple-mobile-web-app-capable" content="yes">
-   <meta name="apple-mobile-web-app-title" content="My Masonic Passport">
-   <link rel="apple-touch-icon" sizes="180x180" href="icons/app-180.png">
+Steps
+1) Overwrite your root index.html and public/manifest.webmanifest with these files.
+2) Ensure you still have the local fallback icons in public/icons/:
+   - app-180.png  (for iOS fallback)
+   - app-192.png, app-512.png, app-maskable-512.png  (Android fallbacks)
 
-   If you already have these tags, ensure the paths match the files above
-   (no leading slash). On GH Pages, relative paths are crucial.
+iOS refresh
+- Delete the existing home-screen shortcut.
+- Safari → open the site → Share → Add to Home Screen.
+- If the old icon persists: Settings → Safari → Advanced → Website Data →
+  search your site → Remove All Website Data → try again.
 
-3) Build & deploy, then refresh.
-
-4) iOS (Safari) – refresh the icon:
-   - Delete any existing home-screen shortcut for the app.
-   - Re-open the site in Safari.
-   - Share → Add to Home Screen (you should see the new icon/name).
-   - If it still shows the old icon, Settings → Safari → Advanced → Website Data →
-     search your domain → Remove All Website Data, then try again.
-
-5) Android (Chrome):
-   - Open the site → you should get an "Install" prompt soon (or from the overflow menu).
-   - Android uses the icons from manifest.webmanifest (192 + 512 + maskable).
-
-Notes:
-- You can replace the PNGs with your FMNZ artwork; keep the same filenames.
-- "maskable" lets Android crop the icon nicely in adaptive shapes.
-- Ensure HTTPS and that "manifest.webmanifest" is accessible at /<repo>/manifest.webmanifest.
+Android refresh
+- Chrome → open the site. You should get an Install banner, or use the menu → Install app.
+- If you previously installed, uninstall first (long-press the icon → Remove) then install again.
