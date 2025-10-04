@@ -26,15 +26,12 @@ export function useOffices() {
   return ctx;
 }
 
-/** Mapping built from your table (supports current & past forms).
- * Key is a lower-cased substring to match the title; value carries abbr, prefix, and an explicit seniority rank.
- * Lower rank number = more junior; higher = more senior.
- */
+/** Mapping (prefix/post‑nominal/precedence) — from your final list */
 type Prefix = "MWBro" | "RWBro" | "VWBro" | "WBro" | "Bro";
 type MapVal = { abbr: string; prefix: Prefix; rank: number; pastAbbr?: string };
 
 const GRAND_MAP: Record<string, MapVal> = {
-  // WBro tier (junior grand offices)
+  // WBro tier
   "grand stewards": { abbr: "GStwd", prefix: "WBro", rank: 1, pastAbbr: "PGStwd" },
   "grand steward": { abbr: "GStwd", prefix: "WBro", rank: 1, pastAbbr: "PGStwd" },
   "grand tyler": { abbr: "GTy", prefix: "WBro", rank: 2, pastAbbr: "PGTy" },
@@ -47,7 +44,7 @@ const GRAND_MAP: Record<string, MapVal> = {
   "senior grand deacon": { abbr: "SGD", prefix: "WBro", rank: 9, pastAbbr: "PGD" },
   "grand deacon": { abbr: "GD", prefix: "WBro", rank: 9, pastAbbr: "PGD" },
   "district grand director of ceremonies": { abbr: "DGDC", prefix: "WBro", rank: 10, pastAbbr: "PDGDC" },
-  // VW tier
+  // VWBro tier
   "assistant grand director of ceremonies": { abbr: "AGDC", prefix: "VWBro", rank: 20, pastAbbr: "PAGDC" },
   "grand director of ceremonies": { abbr: "GDC", prefix: "VWBro", rank: 21, pastAbbr: "PGDC" },
   "grand lecturer": { abbr: "GLec", prefix: "VWBro", rank: 22, pastAbbr: "PGLec" },
@@ -64,7 +61,7 @@ const GRAND_MAP: Record<string, MapVal> = {
   "past presidents board of general purposes": { abbr: "PPBGP", prefix: "RWBro", rank: 33 },
   "past president board of benevolence": { abbr: "PPBB", prefix: "RWBro", rank: 34 },
   "past superintendent of the freemasons charity": { abbr: "PPSC", prefix: "RWBro", rank: 34 },
-  // RW tier
+  // RWBro tier
   "divisional grand master": { abbr: "DGM", prefix: "RWBro", rank: 40, pastAbbr: "PDGM" },
   "senior grand warden": { abbr: "SGW", prefix: "RWBro", rank: 41, pastAbbr: "PASGW" },
   "junior grand warden": { abbr: "JGW", prefix: "RWBro", rank: 42, pastAbbr: "PAJGW" },
@@ -77,7 +74,7 @@ const GRAND_MAP: Record<string, MapVal> = {
   "past deputy grand master": { abbr: "PDGM", prefix: "RWBro", rank: 44 },
   "past provincial grand master": { abbr: "PProvGM", prefix: "RWBro", rank: 43 },
   "past divisional grand master": { abbr: "PDGM", prefix: "RWBro", rank: 43 },
-  // MW tier
+  // MWBro tier
   "grand master": { abbr: "GM", prefix: "MWBro", rank: 50, pastAbbr: "PGM" },
   "pro grand master": { abbr: "PGM", prefix: "MWBro", rank: 49, pastAbbr: "PPGM" },
   "past grand master": { abbr: "PGM", prefix: "MWBro", rank: 48 },
@@ -118,27 +115,28 @@ export function pickPrimaryGrandOffice(offices: Office[]): { office: Office | nu
   return { office: sorted[0], isPast: true };
 }
 
-type MapVal = { abbr: string; prefix: Prefix; rank: number; pastAbbr?: string };
-type Prefix = "MWBro" | "RWBro" | "VWBro" | "WBro" | "Bro";
-
+/** Prefix: prefer Grand mapping; else if Lodge "Master" or "Immediate Past Master" (but NOT Deputy Master), return WBro; else Bro. */
 export function computePrefix(offices: Office[]): Prefix {
   const { office: primary } = pickPrimaryGrandOffice(offices);
   if (primary) {
     const m = findGrandMap(primary.officeName);
     if (m) return m.prefix;
   }
+  // Lodge-only fallback
   const names = offices.map(o => o.officeName.toLowerCase());
-  if (names.some(n => n.includes("immediate past master") || (n.includes(" master") && !n.includes("deputy")))) return "WBro";
+  const hasIPM = names.some(n => n.includes("immediate past master"));
+  const hasMaster = names.some(n => n.includes(" master") && !n.includes("deputy master"));
+  if (hasIPM || hasMaster) return "WBro";
   return "Bro";
 }
 
 export function computeHighestPostNominal(offices: Office[]): string | null {
   const { office: primary, isPast } = pickPrimaryGrandOffice(offices);
   if (!primary) return null;
-  const m = findGrandMap(primary.officeName);
-  if (m) {
-    const abbr = isPast && m.pastAbbr ? m.pastAbbr : m.abbr;
-    return abbr;
+  const t = primary.officeName.toLowerCase();
+  const map = findGrandMap(primary.officeName);
+  if (map) {
+    return isPast && map.pastAbbr ? map.pastAbbr : map.abbr;
   }
   return null;
 }
@@ -148,7 +146,6 @@ export function computePostNominals(offices: Office[]): string[] {
   return one ? [one] : [];
 }
 
-// ✅ Restore this export for Dashboard usage
 export function computeDisplayGrandTitleAndAbbr(offices: Office[]): { title: string | null; abbr: string | null } {
   const { office: primary, isPast } = pickPrimaryGrandOffice(offices);
   if (!primary) return { title: null, abbr: null };
