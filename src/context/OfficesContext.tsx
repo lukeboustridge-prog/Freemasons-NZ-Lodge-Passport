@@ -33,8 +33,8 @@ export function computePrefix(offices: Office[]): "MW Bro" | "RW Bro" | "W Bro" 
   return "Bro";
 }
 
-// Grand rank abbreviations
-const GRAND_ABBR: Record<string, string> = {
+// Grand rank abbreviations (extendable)
+export const GRAND_ABBR: Record<string, string> = {
   "Grand Master": "GM",
   "Deputy Grand Master": "DGM",
   "Senior Grand Warden": "SGW",
@@ -52,15 +52,23 @@ const GRAND_ABBR: Record<string, string> = {
   "Grand Inner Guard": "GIG",
   "Grand Organist": "GOrg",
   "Grand Tyler": "GTyl",
-  "Grand Deacon": "GDeac"
+  "Grand Deacon": "GDeac",
+  "Assistant Grand Director of Ceremonies": "AGDC",
 };
 
 export function computePostNominals(offices: Office[]): string[] {
   const grands = offices.filter(o => o.scope === "Grand");
   const dedup = new Set<string>();
   for (const g of grands) {
-    const key = Object.keys(GRAND_ABBR).find(n => g.officeName.toLowerCase().includes(n.toLowerCase()));
-    const abbr = key ? GRAND_ABBR[key] : g.officeName.split(" ").map(w => (w[0] || "").toUpperCase()).join("");
+    let abbr = GRAND_ABBR[g.officeName];
+    if (!abbr) {
+      // fuzzy match by contains
+      const k = Object.keys(GRAND_ABBR).find(n => g.officeName.toLowerCase().includes(n.toLowerCase()));
+      if (k) abbr = GRAND_ABBR[k];
+    }
+    if (!abbr) {
+      abbr = g.officeName.split(" ").map(w => (w[0] || "").toUpperCase()).join("");
+    }
     if (abbr) dedup.add(abbr);
   }
   return Array.from(dedup);
