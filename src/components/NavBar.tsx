@@ -22,7 +22,6 @@ export default function NavBar() {
           <NavLink to="/offices" className={({isActive}) => item(isActive)}>Offices</NavLink>
           <NavLink to="/milestones" className={({isActive}) => item(isActive)}>Milestones</NavLink>
           <NavLink to="/visits" className={({isActive}) => item(isActive)}>Visits</NavLink>
-          <NavLink to="/settings" className={({isActive}) => item(isActive)}>Settings</NavLink>
         </nav>
       </div>
     </header>

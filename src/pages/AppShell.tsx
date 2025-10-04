@@ -6,7 +6,6 @@ import { MilestonesScreen } from "../screens/Milestones";
 import { VisitsScreen } from "../screens/Visits";
 import ProfilePage from "./ProfilePage";
 import OfficesPage from "./OfficesPage";
-import SettingsPage from "./SettingsPage";
 import { ProfileProvider } from "../context/ProfileContext";
 import { OfficesProvider, Office } from "../context/OfficesContext";
 import { LodgesProvider, Lodge } from "../context/LodgesContext";
@@ -16,20 +15,14 @@ import { MilestonesProvider, Milestone } from "../context/MilestonesContext";
 export default function AppShell() {
   const offices: Office[] = [
     { id: "o1", scope: "Lodge", lodgeName: "Lodge Example No. 123", officeName: "Master", startDate: "2024-04-01", isCurrent: true },
-    { id: "o2", scope: "Grand", officeName: "Grand Sword Bearer", startDate: "2025-08-01", isCurrent: true },
   ];
-
   const lodges: Lodge[] = [
     { id: "l1", name: "Lodge Example", lodgeNumber: "123", joinDate: "2019-03-15" },
-    { id: "l2", name: "Corinthian Lodge", lodgeNumber: "45", joinDate: "2021-06-10", resignedDate: "2023-11-20" },
   ];
-
   const milestones: Milestone[] = [
     { id: "ms1", type: "Initiation", date: "2017-02-10" },
-    { id: "ms2", type: "Raising", date: "2018-10-05" },
   ];
-
-  const visits = [{ id: "v1", date: "2025-09-14", lodgeId: "l1", notes: "Regular meeting" }];
+  const visits = [];
 
   return (
     <ProfileProvider>
@@ -46,8 +39,7 @@ export default function AppShell() {
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/offices" element={<OfficesPage />} />
                     <Route path="/milestones" element={<MilestonesScreen />} />
-                    <Route path="/visits" element={<VisitsScreen visits={[] as any} onSave={()=>{}} onUpdate={()=>{}} />} />
-                    <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/visits" element={<VisitsScreen />} />
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                   </Routes>
                 </main>
