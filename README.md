@@ -1,25 +1,13 @@
-# Freemasons NZ Passport - full app
+# Freemasons NZ Passport (Demo + PWA)
+- Automated prefix entitlement from BOC mapping
+- Current + Past Grand Rank post-nominals
+- Lodges summary incl. resigned dates
+- PWA support (installable)
 
-This repository is a minimal Vite React TypeScript app with Tailwind and the updated Passport UI.
+## Run
+npm i
+npm run dev
 
-## Quick start
-
-1. Clone or upload to GitHub, then install:
-   ```bash
-   npm i
-   npm run dev
-   ```
-
-2. Build for production:
-   ```bash
-   npm run build
-   npm run preview
-   ```
-
-The app includes:
-- Dashboard with separate sections for memberships, lodge offices, and grand lodge offices
-- Milestones with compact collapsible rows and inline edit
-- Visits with compact collapsible rows and inline add and edit
-- FMNZLogo component pointing to the correct URL with a local fallback
-
-Replace the placeholder state in `App.tsx` with your API store when ready.
+## Build
+npm run build
+npm run preview
