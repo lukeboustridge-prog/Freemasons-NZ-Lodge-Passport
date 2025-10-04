@@ -1,9 +1,25 @@
 import React from "react";
-import logoUrl from "/fmnz-logo.png";
 
-type Props = { className?: string, alt?: string };
-export default function FMNZLogo({ className = "h-8 w-auto", alt = "Freemasons New Zealand" }: Props) {
-  const [src, setSrc] = React.useState<string>(logoUrl);
-  const fallback = "https://freemasonsnz.org/wp-content/uploads/2024/05/Freemasons-logo-colour-blue-BG-S";
-  return <img src={src} alt={alt} className={className} onError={() => setSrc(fallback)} />;
+const REMOTE = "https://freemasonsnz.org/wp-content/uploads/2019/05/freemason_colour_standardonwhite.png";
+const LOCAL = "/fmnz-logo.png"; // served from /public
+
+export default function Logo({ className = "h-8 w-auto" }: { className?: string }) {
+  const [src, setSrc] = React.useState<string>(REMOTE);
+  const [failed, setFailed] = React.useState(false);
+
+  return (
+    <img
+      src={src}
+      alt="Freemasons New Zealand"
+      className={className}
+      onError={() => {
+        if (!failed) {
+          setFailed(true);
+          setSrc(LOCAL);
+        }
+      }}
+      loading="eager"
+      decoding="async"
+    />
+  );
 }
