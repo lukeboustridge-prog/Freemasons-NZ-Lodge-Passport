@@ -8,8 +8,14 @@ export default function NavBar() {
 
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-40">
-      <div className="container flex items-center gap-2 py-3">
-        <FMNZLogo className="w-24 h-auto" />
+      <div className="max-w-5xl mx-auto px-3 py-3 flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <FMNZLogo className="w-10 h-auto" />
+          <div className="leading-tight">
+            <div className="text-sm font-semibold">Freemasons</div>
+            <div className="text-xs text-gray-600">New Zealand</div>
+          </div>
+        </div>
         <div className="ml-auto flex items-center gap-1">
           <NavLink to="/dashboard" className={link}>Dashboard</NavLink>
           <NavLink to="/profile" className={link}>Profile</NavLink>

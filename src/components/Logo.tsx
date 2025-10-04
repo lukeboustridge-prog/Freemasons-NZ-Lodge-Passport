@@ -1,17 +1,10 @@
 import React from "react";
+// Import from /public via Vite so the built URL includes the correct base on GitHub Pages.
+import logoUrl from "/fmnz-logo.png";
 
-function resolveLogoPath() {
-  const repo = "/Freemasons-NZ-Lodge-Passport/";
-  const local = (path: string) => {
-    // Prefer GitHub Pages base if present in current pathname
-    const base = (location.pathname.includes(repo) ? repo : "/");
-    return base + path.replace(/^\//, "");
-  };
-  return local("fmnz-logo.png");
-}
-
-export default function FMNZLogo({ className = "w-24 h-auto" }: { className?: string }) {
-  const [src, setSrc] = React.useState(resolveLogoPath());
-  const external = "https://freemasonsnz.org/wp-content/uploads/2024/05/Freemasons-logo-colour-blue-BG-S";
-  return <img src={src} alt="Freemasons New Zealand" className={className} onError={() => setSrc(external)} />;
+type Props = { className?: string, alt?: string };
+export default function FMNZLogo({ className = "w-28 h-auto", alt = "Freemasons New Zealand" }: Props) {
+  const [src, setSrc] = React.useState<string>(logoUrl);
+  const fallback = "https://freemasonsnz.org/wp-content/uploads/2024/05/Freemasons-logo-colour-blue-BG-S";
+  return <img src={src} alt={alt} className={className} onError={() => setSrc(fallback)} />;
 }
