@@ -25,11 +25,6 @@ export function useOffices() {
   return ctx;
 }
 
-function titleIncludes(sought: string, title: string) {
-  return title.toLowerCase().includes(sought.toLowerCase());
-}
-
-// Seniority helper: higher index = more senior (array is junior → senior)
 function grandSeniorityIndex(title: string) {
   const idx = GRAND_OFFICES_ORDERED.findIndex(t => title.toLowerCase().includes(t.toLowerCase()));
   return idx === -1 ? -1 : idx;
@@ -43,19 +38,24 @@ export function pickPrimaryGrandOffice(offices: Office[]): { office: Office | nu
   const sorted = [...past].sort((a, b) => {
     const sa = grandSeniorityIndex(a.officeName);
     const sb = grandSeniorityIndex(b.officeName);
-    if (sa !== sb) return sb - sa;
-    return (b.startDate || "").localeCompare(a.startDate || "");
+    if (sa !== sb) return sb - sa; // more senior first (higher index in junior→senior array)
+    return (b.startDate || "").localeCompare(a.startDate || ""); // then most recent
   });
   return { office: sorted[0], isPast: true };
 }
 
-// Prefix rules (per your spec): GM -> MW Bro; DGM/SGW/JGW -> RW Bro; others Grand -> W Bro; Lodge WM/PM -> W Bro; else Bro.
+// Prefix rules: 
+// - GM/Pro GM -> MW Bro
+// - DGM, SGW, JGW -> RW Bro
+// - Any other Grand office -> W Bro
+// - Else WM/PM -> W Bro; otherwise Bro
 export function computePrefix(offices: Office[]): "MW Bro" | "RW Bro" | "W Bro" | "Bro" {
   const { office: primary } = pickPrimaryGrandOffice(offices);
   if (primary) {
     const t = primary.officeName.toLowerCase();
-    if (t.includes("grand master")) return "MW Bro";
-    if (t.includes("deputy grand master") || t.includes("senior grand warden") || t.includes("junior grand warden")) return "RW Bro";
+    if (t.includes("deputy grand master")) return "RW Bro"; // check before "grand master"
+    if (t.includes("senior grand warden") || t.includes("junior grand warden")) return "RW Bro";
+    if (t.includes("pro grand master") || t.includes("grand master")) return "MW Bro";
     return "W Bro";
   }
   const names = offices.map(o => o.officeName.toLowerCase());
@@ -63,9 +63,10 @@ export function computePrefix(offices: Office[]): "MW Bro" | "RW Bro" | "W Bro" 
   return "Bro";
 }
 
-// Grand post‑nominals mapping (extend/adjust to exact BoC abbreviations if needed).
+// Grand abbreviations
 export const GRAND_ABBR: Record<string, string> = {
   "Grand Master": "GM",
+  "Pro Grand Master": "ProGM",
   "Deputy Grand Master": "DGM",
   "Senior Grand Warden": "SGW",
   "Junior Grand Warden": "JGW",
@@ -83,7 +84,9 @@ export const GRAND_ABBR: Record<string, string> = {
   "Grand Inner Guard": "GIG",
   "Grand Organist": "GOrg",
   "Grand Tyler": "GTyl",
-  "Grand Deacon": "GDeac"
+  "Grand Deacon": "GDeac",
+  "Grand Bible Bearer": "GBibB",
+  "Grand Steward": "GStwd"
 };
 
 function abbrFor(title: string): string {
@@ -94,7 +97,7 @@ function abbrFor(title: string): string {
   return title.split(" ").map(w => (w[0] || "").toUpperCase()).join("");
 }
 
-/** Highest single post‑nominal only — matches the same precedence we use for prefix selection. */
+// Highest single post‑nominal only
 export function computeHighestPostNominal(offices: Office[]): string | null {
   const { office: primary, isPast } = pickPrimaryGrandOffice(offices);
   if (!primary) return null;
@@ -102,7 +105,17 @@ export function computeHighestPostNominal(offices: Office[]): string | null {
   return (isPast ? "P" : "") + base;
 }
 
-// Backwards compat: computePostNominals() now returns an array with at most ONE item (the highest).
+export function computeDisplayGrandTitleAndAbbr(offices: Office[]): { title: string | null; abbr: string | null } {
+  const { office: primary, isPast } = pickPrimaryGrandOffice(offices);
+  if (!primary) return { title: null, abbr: null };
+  const base = abbrFor(primary.officeName);
+  return {
+    title: (isPast ? "Past " : "") + primary.officeName,
+    abbr: (isPast ? "P" : "") + base
+  };
+}
+
+// Backwards compat
 export function computePostNominals(offices: Office[]): string[] {
   const one = computeHighestPostNominal(offices);
   return one ? [one] : [];

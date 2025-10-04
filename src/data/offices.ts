@@ -1,7 +1,3 @@
-/**
- * Seniority lists (junior → senior) sourced to match FMNZ practice / BoC.
- * You can adjust wording to EXACT BoC text if needed.
- */
 export const LODGE_OFFICES_ORDERED: string[] = [
   "Tyler",
   "Inner Guard",
@@ -22,13 +18,18 @@ export const LODGE_OFFICES_ORDERED: string[] = [
   "Past Master",
 ];
 
+/**
+ * Grand Offices — ordered junior → senior.
+ * Based on BoC precedence, with the list beginning at "Grand Steward" per your instruction.
+ * (We exclude all "Past ..." entries and any District/Provincial roles.)
+ */
 export const GRAND_OFFICES_ORDERED: string[] = [
-  "Grand Tyler",
+  "Grand Steward",
   "Grand Inner Guard",
+  "Grand Organist",
   "Grand Standard Bearer",
   "Grand Sword Bearer",
-  "Grand Organist",
-  "Grand Almoner",
+  "Grand Bible Bearer",
   "Grand Deacon",
   "Assistant Grand Director of Ceremonies",
   "Grand Director of Ceremonies",
@@ -40,5 +41,6 @@ export const GRAND_OFFICES_ORDERED: string[] = [
   "Junior Grand Warden",
   "Senior Grand Warden",
   "Deputy Grand Master",
+  "Pro Grand Master",
   "Grand Master",
 ];

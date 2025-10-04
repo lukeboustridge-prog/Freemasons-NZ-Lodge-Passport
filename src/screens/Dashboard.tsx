@@ -1,20 +1,21 @@
 import React from "react";
 import { SectionCard } from "../components/SectionCard";
 import { useProfile } from "../context/ProfileContext";
-import { useOffices, computePrefix, computePostNominals } from "../context/OfficesContext";
+import { useOffices, computePrefix, computePostNominals, computeDisplayGrandTitleAndAbbr } from "../context/OfficesContext";
 import { useLodges, formatLodgeName } from "../context/LodgesContext";
+import { useVisits } from "../context/VisitsContext";
 
 export default function Dashboard() {
   const { profile } = useProfile();
   const { offices } = useOffices();
   const { lodges } = useLodges();
+  const { visits } = useVisits();
 
   const prefix = computePrefix(offices);
   const posts = computePostNominals(offices);
   const post = posts.length ? ", " + posts[0] : "";
   const fullName = `${prefix} ${profile.firstName} ${profile.lastName}${post}`;
 
-  // Years in Freemasonry = from earliest lodge join date
   function yearsInFreemasonry(): number | null {
     if (!lodges.length) return null;
     const dates = lodges.map(l => l.joinDate).filter(Boolean).sort();
@@ -27,16 +28,23 @@ export default function Dashboard() {
     return years < 0 ? 0 : years;
   }
   const yif = yearsInFreemasonry();
+  const totalVisits = visits.length;
 
   const currentMemberships = lodges.filter(l => !l.resignedDate);
   const currentLodgeOffices = offices.filter(o => o.scope === "Lodge" && o.isCurrent);
   const currentGrandOffices = offices.filter(o => o.scope === "Grand" && o.isCurrent);
+  const { title: pastGrandTitle } = computeDisplayGrandTitleAndAbbr(offices);
+  const showPastGrandFallback = currentGrandOffices.length === 0 && !!pastGrandTitle;
 
   return (
     <main className="max-w-3xl mx-auto p-4 sm:p-6 space-y-4">
       <div>
         <h1 className="text-2xl font-bold">{fullName}</h1>
-        <p className="text-sm text-gray-600">Your Masonic Passport{typeof yif === "number" ? ` • ${yif} years in Freemasonry` : ""}</p>
+        <p className="text-sm text-gray-600">
+          Your Masonic Passport
+          {typeof yif === "number" ? ` • ${yif} years in Freemasonry` : ""}
+          {typeof totalVisits === "number" ? ` • ${totalVisits} visits total` : ""}
+        </p>
       </div>
 
       <SectionCard title="Lodge memberships">
@@ -83,7 +91,17 @@ export default function Dashboard() {
               </div>
             </li>
           ))}
-          {currentGrandOffices.length === 0 && <li className="text-gray-500">No current or past grand rank recorded</li>}
+          {showPastGrandFallback && (
+            <li className="bg-gray-50 rounded-xl px-3 py-2">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3">
+                <div className="min-w-0">
+                  <div className="font-medium truncate">{pastGrandTitle}</div>
+                  <div className="text-sm text-gray-500 truncate">Grand Lodge</div>
+                </div>
+              </div>
+            </li>
+          )}
+          {currentGrandOffices.length === 0 && !showPastGrandFallback && <li className="text-gray-500">No current or past grand rank recorded</li>}
         </ul>
       </SectionCard>
     </main>
