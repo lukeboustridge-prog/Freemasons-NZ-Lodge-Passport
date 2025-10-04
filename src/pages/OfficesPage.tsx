@@ -1,11 +1,15 @@
 import React from "react";
 import { useOffices, Office } from "../context/OfficesContext";
+import { useLodges } from "../context/LodgesContext";
 import { SectionCard } from "../components/SectionCard";
 import { LODGE_OFFICES_ORDERED, GRAND_OFFICES_ORDERED } from "../data/offices";
 
 export default function OfficesPage(){
   const { offices, setOffices } = useOffices();
+  const { lodges } = useLodges();
   const [adding, setAdding] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
   const [draft, setDraft] = React.useState<Office>({
     id: crypto.randomUUID(),
     scope: "Lodge",
@@ -22,13 +26,30 @@ export default function OfficesPage(){
     }));
   }, [draft.scope]);
 
+  function validate(o: Office): string | null {
+    if (o.scope === "Lodge" && !o.lodgeName) return "Please select a lodge for lodge offices.";
+    if (o.scope === "Grand" && o.isCurrent) {
+      const anotherCurrentGrand = offices.some(of => of.scope === "Grand" && of.isCurrent);
+      if (anotherCurrentGrand) return "Only one current Grand Lodge office is allowed.";
+    }
+    return null;
+  }
+
   function add() {
+    const err = validate(draft);
+    if (err) { setError(err); return; }
     setOffices([{ ...draft, id: crypto.randomUUID() }, ...offices]);
     setAdding(false);
+    setError(null);
   }
+
   function updateOne(updated: Office) {
+    const err = validate(updated);
+    if (err) return setError(err);
     setOffices(offices.map(o => o.id === updated.id ? updated : o));
+    setError(null);
   }
+
   function deleteOne(id: string) {
     setOffices(offices.filter(o => o.id !== id));
   }
@@ -42,11 +63,30 @@ export default function OfficesPage(){
     );
   }
 
+  function LodgeSelect({ value, onChange }:{ value: string; onChange:(v:string)=>void }) {
+    return (
+      <select className="rounded-lg border border-gray-300 px-3 py-2" value={value} onChange={e=>onChange(e.target.value)}>
+        <option value="">Select lodge…</option>
+        {lodges.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
+      </select>
+    );
+  }
+
   function Row({ o }:{ o: Office }) {
     const [open, setOpen] = React.useState(false);
     const [edit, setEdit] = React.useState(false);
     const [form, setForm] = React.useState<Office>(o);
+    const [rowError, setRowError] = React.useState<string | null>(null);
     React.useEffect(()=>setForm(o), [o]);
+
+    function save() {
+      const err = validate(form);
+      if (err) { setRowError(err); return; }
+      updateOne(form);
+      setEdit(false);
+      setRowError(null);
+    }
+
     const status = o.isCurrent ? "Current" : (o.endDate ? "Ended " + o.endDate : "Past");
 
     return (
@@ -81,8 +121,8 @@ export default function OfficesPage(){
                   </label>
                   {form.scope === "Lodge" && (
                     <label className="flex flex-col gap-1 text-sm">
-                      <span className="font-medium">Lodge name</span>
-                      <input className="rounded-lg border border-gray-300 px-3 py-2" value={form.lodgeName || ""} onChange={(e)=>setForm({...form, lodgeName: e.target.value})} />
+                      <span className="font-medium">Lodge</span>
+                      <LodgeSelect value={form.lodgeName || ""} onChange={(v)=>setForm({...form, lodgeName: v})} />
                     </label>
                   )}
                   <label className="flex flex-col gap-1 text-sm">
@@ -98,16 +138,17 @@ export default function OfficesPage(){
                     Current
                   </label>
                 </div>
+                {rowError && <div className="text-sm text-red-600">{rowError}</div>}
                 <div className="flex gap-2">
-                  <button className="px-3 py-2 rounded-lg bg-gray-200 text-sm" onClick={()=>{setEdit(false); setForm(o);}}>Cancel</button>
-                  <button className="px-3 py-2 rounded-lg bg-blue-600 text-white text-sm" onClick={()=>{updateOne(form); setEdit(false);}}>Save</button>
+                  <button className="px-3 py-2 rounded-lg bg-gray-200 text-sm" onClick={()=>{setEdit(false); setForm(o); setRowError(null);}}>Cancel</button>
+                  <button className="px-3 py-2 rounded-lg bg-blue-600 text-white text-sm" onClick={save}>Save</button>
                 </div>
               </div>
             )}
           </div>
         )}
       </div>
-    )
+    );
   }
 
   return (
@@ -115,10 +156,10 @@ export default function OfficesPage(){
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Offices Held</h1>
         {!adding ? (
-          <button className="px-3 py-2 rounded-lg bg-blue-600 text-white text-sm" onClick={()=>setAdding(true)}>Add</button>
+          <button className="px-3 py-2 rounded-lg bg-blue-600 text-white text-sm" onClick={()=>{setDraft(d=>({ ...d, lodgeName: "" })); setAdding(true);}}>Add</button>
         ) : (
           <div className="flex gap-2">
-            <button className="px-3 py-2 rounded-lg bg-gray-200 text-sm" onClick={()=>{setAdding(false);}}>Cancel</button>
+            <button className="px-3 py-2 rounded-lg bg-gray-200 text-sm" onClick={()=>{setAdding(false); setError(null);}}>Cancel</button>
             <button className="px-3 py-2 rounded-lg bg-blue-600 text-white text-sm" onClick={add}>Save</button>
           </div>
         )}
@@ -140,8 +181,8 @@ export default function OfficesPage(){
             </label>
             {draft.scope === "Lodge" && (
               <label className="flex flex-col gap-1 text-sm">
-                <span className="font-medium">Lodge name</span>
-                <input className="rounded-lg border border-gray-300 px-3 py-2" value={draft.lodgeName || ""} onChange={(e)=>setDraft({...draft, lodgeName: e.target.value})} />
+                <span className="font-medium">Lodge</span>
+                <LodgeSelect value={draft.lodgeName || ""} onChange={(v)=>setDraft({...draft, lodgeName: v})} />
               </label>
             )}
             <label className="flex flex-col gap-1 text-sm">
@@ -157,6 +198,7 @@ export default function OfficesPage(){
               Current
             </label>
           </div>
+          {error && <div className="text-sm text-red-600 mt-2">{error}</div>}
         </SectionCard>
       )}
 

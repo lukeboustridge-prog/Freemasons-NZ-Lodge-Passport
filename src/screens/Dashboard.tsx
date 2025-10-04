@@ -2,20 +2,22 @@ import React from "react";
 import { SectionCard } from "../components/SectionCard";
 import { useProfile } from "../context/ProfileContext";
 import { useOffices, computePrefix, computePostNominals } from "../context/OfficesContext";
+import { useLodges } from "../context/LodgesContext";
 
-export type LodgeMembership = { id: string; lodgeName: string; status: "Current" | "Resigned" | "Past"; startDate?: string; endDate?: string; };
 export type Office = { id: string; scope: "Lodge" | "Grand"; lodgeName?: string; officeName: string; startDate: string; endDate?: string; isCurrent: boolean; };
 
-export default function Dashboard({ memberships, offices }: { memberships: LodgeMembership[]; offices: Office[]; }) {
+export default function Dashboard({ offices: officesProp }: { offices: Office[]; }) {
   const { profile } = useProfile();
-  const { offices: globalOffices } = useOffices();
-  const prefix = computePrefix(globalOffices.length ? globalOffices : offices as any);
-  const posts = computePostNominals(globalOffices.length ? globalOffices : offices as any);
+  const { offices } = useOffices();
+  const { lodges } = useLodges();
+
+  const prefix = computePrefix(offices);
+  const posts = computePostNominals(offices);
   const fullName = `${prefix} ${profile.firstName} ${profile.lastName}${posts.length ? ", " + posts.join(", ") : ""}`;
 
-  const currentMemberships = memberships.filter((m) => m.status === "Current");
-  const currentLodgeOffices = offices.filter((o) => o.scope === "Lodge" && o.isCurrent);
-  const currentGrandOffices = offices.filter((o) => o.scope === "Grand" && o.isCurrent);
+  const currentMemberships = lodges.filter(l => !l.resignedDate);
+  const currentLodgeOffices = offices.filter(o => o.scope === "Lodge" && o.isCurrent);
+  const currentGrandOffices = offices.filter(o => o.scope === "Grand" && o.isCurrent);
 
   return (
     <main className="max-w-3xl mx-auto p-4 sm:p-6 space-y-4">
@@ -29,8 +31,8 @@ export default function Dashboard({ memberships, offices }: { memberships: Lodge
           {currentMemberships.map((m) => (
             <li key={m.id} className="py-2">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3">
-                <span className="font-medium truncate">{m.lodgeName}</span>
-                <span className="text-sm text-gray-500 sm:whitespace-nowrap">{m.startDate} {m.endDate ? `– ${m.endDate}` : ""}</span>
+                <span className="font-medium truncate">{m.name}</span>
+                <span className="text-sm text-gray-500 sm:whitespace-nowrap">{m.joinDate} {m.resignedDate ? `– ${m.resignedDate}` : ""}</span>
               </div>
             </li>
           ))}
