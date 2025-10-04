@@ -42,9 +42,9 @@ export default function Dashboard({
         <ul className="divide-y">
           {currentMemberships.map((m) => (
             <li key={m.id} className="py-2">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3">
                 <span className="font-medium truncate">{m.lodgeName}</span>
-                <span className="text-sm text-gray-500 whitespace-nowrap">
+                <span className="text-sm text-gray-500 sm:whitespace-nowrap">
                   {m.startDate} {m.endDate ? `– ${m.endDate}` : ""}
                 </span>
               </div>
@@ -58,12 +58,14 @@ export default function Dashboard({
         <ul className="space-y-2">
           {currentLodgeOffices.length === 0 && <li className="text-gray-500">No current lodge offices</li>}
           {currentLodgeOffices.map((o) => (
-            <li key={o.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2 gap-3">
-              <div className="min-w-0">
-                <div className="font-medium truncate">{o.officeName}</div>
-                <div className="text-sm text-gray-500 truncate">{o.lodgeName}</div>
+            <li key={o.id} className="bg-gray-50 rounded-xl px-3 py-2">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3">
+                <div className="min-w-0">
+                  <div className="font-medium truncate">{o.officeName}</div>
+                  <div className="text-sm text-gray-500 truncate">{o.lodgeName}</div>
+                </div>
+                <div className="text-sm text-gray-600 sm:whitespace-nowrap">{o.startDate}</div>
               </div>
-              <div className="text-sm text-gray-600 whitespace-nowrap">{o.startDate}</div>
             </li>
           ))}
         </ul>
@@ -73,12 +75,14 @@ export default function Dashboard({
         <ul className="space-y-2">
           {currentGrandOffices.length === 0 && <li className="text-gray-500">No current grand lodge offices</li>}
           {currentGrandOffices.map((o) => (
-            <li key={o.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2 gap-3">
-              <div className="min-w-0">
-                <div className="font-medium truncate">{o.officeName}</div>
-                <div className="text-sm text-gray-500 truncate">Grand Lodge</div>
+            <li key={o.id} className="bg-gray-50 rounded-xl px-3 py-2">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3">
+                <div className="min-w-0">
+                  <div className="font-medium truncate">{o.officeName}</div>
+                  <div className="text-sm text-gray-500 truncate">Grand Lodge</div>
+                </div>
+                <div className="text-sm text-gray-600 sm:whitespace-nowrap">{o.startDate}</div>
               </div>
-              <div className="text-sm text-gray-600 whitespace-nowrap">{o.startDate}</div>
             </li>
           ))}
         </ul>
