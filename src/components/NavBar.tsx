@@ -1,5 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
+import FMNZLogo from "./Logo";
 
 export default function NavBar() {
   const link = ({ isActive }: { isActive: boolean }) =>
@@ -7,8 +8,8 @@ export default function NavBar() {
 
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-40">
-      <div className="max-w-5xl mx-auto px-3 py-3 flex items-center gap-2">
-        <div className="font-semibold">FMNZ Passport</div>
+      <div className="container flex items-center gap-2 py-3">
+        <FMNZLogo className="w-24 h-auto" />
         <div className="ml-auto flex items-center gap-1">
           <NavLink to="/dashboard" className={link}>Dashboard</NavLink>
           <NavLink to="/profile" className={link}>Profile</NavLink>
