@@ -100,7 +100,7 @@ export function VisitsScreen() {
         )}
       </div>
 
-      {adding and (
+      {adding && (
         <div className="rounded-xl border border-gray-200 bg-white p-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="flex flex-col gap-1 text-sm">
