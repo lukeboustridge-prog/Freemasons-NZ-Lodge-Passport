@@ -1,7 +1,7 @@
 import React from "react";
 import { SectionCard } from "../components/SectionCard";
 import { useProfile } from "../context/ProfileContext";
-import { useOffices, computePrefix, computePostNominals } from "../context/OfficesContext";
+import { useOffices, computePrefix, computePostNominals, computeDisplayGrandTitleAndAbbr } from "../context/OfficesContext";
 import { useLodges, formatLodgeName } from "../context/LodgesContext";
 
 export type Office = { id: string; scope: "Lodge" | "Grand"; lodgeName?: string; officeName: string; startDate: string; endDate?: string; isCurrent: boolean; };
@@ -18,6 +18,9 @@ export default function Dashboard({ offices: officesProp }: { offices: Office[];
   const currentMemberships = lodges.filter(l => !l.resignedDate);
   const currentLodgeOffices = offices.filter(o => o.scope === "Lodge" && o.isCurrent);
   const currentGrandOffices = offices.filter(o => o.scope === "Grand" && o.isCurrent);
+
+  const { title: grandDisplayTitle } = computeDisplayGrandTitleAndAbbr(offices);
+  const showPastGrandFallback = currentGrandOffices.length === 0 && !!grandDisplayTitle;
 
   return (
     <main className="max-w-3xl mx-auto p-4 sm:p-6 space-y-4">
@@ -59,7 +62,6 @@ export default function Dashboard({ offices: officesProp }: { offices: Office[];
 
       <SectionCard title="Current grand lodge offices">
         <ul className="space-y-2">
-          {currentGrandOffices.length === 0 && <li className="text-gray-500">No current grand lodge offices</li>}
           {currentGrandOffices.map((o) => (
             <li key={o.id} className="bg-gray-50 rounded-xl px-3 py-2">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3">
@@ -71,6 +73,17 @@ export default function Dashboard({ offices: officesProp }: { offices: Office[];
               </div>
             </li>
           ))}
+          {showPastGrandFallback && (
+            <li className="bg-gray-50 rounded-xl px-3 py-2">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3">
+                <div className="min-w-0">
+                  <div className="font-medium truncate">{grandDisplayTitle}</div>
+                  <div className="text-sm text-gray-500 truncate">Grand Lodge</div>
+                </div>
+              </div>
+            </li>
+          )}
+          {currentGrandOffices.length === 0 && !showPastGrandFallback && <li className="text-gray-500">No current or past grand rank recorded</li>}
         </ul>
       </SectionCard>
     </main>
