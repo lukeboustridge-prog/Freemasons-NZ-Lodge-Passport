@@ -23,6 +23,7 @@ export default function OfficesPage(){
     setDraft(d => ({
       ...d,
       officeName: d.scope === "Grand" ? GRAND_OFFICES_ORDERED[0] : LODGE_OFFICES_ORDERED[0],
+      lodgeName: d.scope === "Grand" ? "" : d.lodgeName
     }));
   }, [draft.scope]);
 
@@ -104,10 +105,16 @@ export default function OfficesPage(){
         {open && (
           <div className="px-3 pb-3 space-y-3">
             {!edit ? (
-              <div className="flex gap-2">
-                <button className="px-3 py-2 rounded-lg bg-gray-200 text-sm" onClick={()=>setEdit(true)}>Edit</button>
-                <button className="px-3 py-2 rounded-lg bg-red-600 text-white text-sm" onClick={()=>deleteOne(o.id)}>Delete</button>
-              </div>
+              <>
+                <div className="text-sm text-gray-600">
+                  <div><span className="text-gray-500">Start:</span> {o.startDate || "—"}</div>
+                  <div><span className="text-gray-500">End:</span> {o.endDate || "—"}</div>
+                </div>
+                <div className="flex gap-2">
+                  <button className="px-3 py-2 rounded-lg bg-gray-200 text-sm" onClick={()=>setEdit(true)}>Edit</button>
+                  <button className="px-3 py-2 rounded-lg bg-red-600 text-white text-sm" onClick={()=>deleteOne(o.id)}>Delete</button>
+                </div>
+              </>
             ) : (
               <div className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

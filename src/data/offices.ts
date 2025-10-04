@@ -1,10 +1,8 @@
 /**
- * Ordered from MOST JUNIOR → MOST SENIOR.
- * Adjust freely to match BoC and your lodge practice. This file is the single source of truth for dropdowns.
+ * Seniority lists (junior → senior) sourced to match FMNZ practice / BoC.
+ * You can adjust wording to EXACT BoC text if needed.
  */
-
 export const LODGE_OFFICES_ORDERED: string[] = [
-  // Floor & working officers (junior → senior)
   "Tyler",
   "Inner Guard",
   "Junior Steward",
@@ -14,8 +12,8 @@ export const LODGE_OFFICES_ORDERED: string[] = [
   "Almoner",
   "Organist",
   "Chaplain",
+  "Assistant Director of Ceremonies",
   "Director of Ceremonies",
-  "Inner Workings / Marshal",
   "Treasurer",
   "Secretary",
   "Junior Warden",
@@ -25,7 +23,6 @@ export const LODGE_OFFICES_ORDERED: string[] = [
 ];
 
 export const GRAND_OFFICES_ORDERED: string[] = [
-  // Junior → senior (can refine from BoC as needed)
   "Grand Tyler",
   "Grand Inner Guard",
   "Grand Standard Bearer",

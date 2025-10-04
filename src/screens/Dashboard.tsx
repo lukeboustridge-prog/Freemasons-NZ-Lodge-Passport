@@ -1,32 +1,42 @@
 import React from "react";
 import { SectionCard } from "../components/SectionCard";
 import { useProfile } from "../context/ProfileContext";
-import { useOffices, computePrefix, computePostNominals, computeDisplayGrandTitleAndAbbr } from "../context/OfficesContext";
+import { useOffices, computePrefix, computePostNominals } from "../context/OfficesContext";
 import { useLodges, formatLodgeName } from "../context/LodgesContext";
 
-export type Office = { id: string; scope: "Lodge" | "Grand"; lodgeName?: string; officeName: string; startDate: string; endDate?: string; isCurrent: boolean; };
-
-export default function Dashboard({ offices: officesProp }: { offices: Office[]; }) {
+export default function Dashboard() {
   const { profile } = useProfile();
   const { offices } = useOffices();
   const { lodges } = useLodges();
 
   const prefix = computePrefix(offices);
   const posts = computePostNominals(offices);
-  const fullName = `${prefix} ${profile.firstName} ${profile.lastName}${posts.length ? ", " + posts.join(", ") : ""}`;
+  const post = posts.length ? ", " + posts[0] : "";
+  const fullName = `${prefix} ${profile.firstName} ${profile.lastName}${post}`;
+
+  // Years in Freemasonry = from earliest lodge join date
+  function yearsInFreemasonry(): number | null {
+    if (!lodges.length) return null;
+    const dates = lodges.map(l => l.joinDate).filter(Boolean).sort();
+    const first = dates[0];
+    if (!first) return null;
+    const start = new Date(first + "T00:00:00");
+    const now = new Date();
+    const diff = now.getTime() - start.getTime();
+    const years = Math.floor(diff / (1000*60*60*24*365.25));
+    return years < 0 ? 0 : years;
+  }
+  const yif = yearsInFreemasonry();
 
   const currentMemberships = lodges.filter(l => !l.resignedDate);
   const currentLodgeOffices = offices.filter(o => o.scope === "Lodge" && o.isCurrent);
   const currentGrandOffices = offices.filter(o => o.scope === "Grand" && o.isCurrent);
 
-  const { title: grandDisplayTitle } = computeDisplayGrandTitleAndAbbr(offices);
-  const showPastGrandFallback = currentGrandOffices.length === 0 && !!grandDisplayTitle;
-
   return (
     <main className="max-w-3xl mx-auto p-4 sm:p-6 space-y-4">
       <div>
         <h1 className="text-2xl font-bold">{fullName}</h1>
-        <p className="text-sm text-gray-600">Your Masonic Passport</p>
+        <p className="text-sm text-gray-600">Your Masonic Passport{typeof yif === "number" ? ` • ${yif} years in Freemasonry` : ""}</p>
       </div>
 
       <SectionCard title="Lodge memberships">
@@ -73,17 +83,7 @@ export default function Dashboard({ offices: officesProp }: { offices: Office[];
               </div>
             </li>
           ))}
-          {showPastGrandFallback && (
-            <li className="bg-gray-50 rounded-xl px-3 py-2">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3">
-                <div className="min-w-0">
-                  <div className="font-medium truncate">{grandDisplayTitle}</div>
-                  <div className="text-sm text-gray-500 truncate">Grand Lodge</div>
-                </div>
-              </div>
-            </li>
-          )}
-          {currentGrandOffices.length === 0 && !showPastGrandFallback && <li className="text-gray-500">No current or past grand rank recorded</li>}
+          {currentGrandOffices.length === 0 && <li className="text-gray-500">No current or past grand rank recorded</li>}
         </ul>
       </SectionCard>
     </main>
