@@ -2,12 +2,10 @@ import React from "react";
 import { SectionCard } from "../components/SectionCard";
 import { useProfile } from "../context/ProfileContext";
 import { useOffices, computePrefix, computePostNominals, computeDisplayGrandTitleAndAbbr } from "../context/OfficesContext";
-import { useLodges, formatLodgeName } from "../context/LodgesContext";
+import { useLodges } from "../context/LodgesContext";
 import { useVisits } from "../context/VisitsContext";
 import { useMilestones } from "../context/MilestonesContext";
 import { yearsFromInitiation } from "../utils/profileMetrics";
-
-export type LodgeMembership = { id: string; lodgeName: string; lodgeNumber?: string; status: "Current" | "Resigned" | "Past"; startDate?: string; endDate?: string };
 
 export default function Dashboard() {
   const { profile } = useProfile?.() ?? ({ profile: {} } as any);
@@ -21,21 +19,16 @@ export default function Dashboard() {
   const grand = computeDisplayGrandTitleAndAbbr(offices);
   const years = yearsFromInitiation(milestones);
 
+  const currentMemberships = (lodges || []).filter((l: any) => !(l?.resignedDate || l?.endDate));
+  const resignedMemberships = (lodges || []).filter((l: any) => (l?.resignedDate || l?.endDate));
+
   const lodgeOffices = offices.filter(o => o.scope === "Lodge" && o.isCurrent);
   const grandOffice = offices.find(o => o.scope === "Grand" && o.isCurrent);
 
-  function lodgeLabel(l: { name?: string; lodgeNumber?: string }) {
-    if (!l) return "";
-    if (l.lodgeNumber) return `${l.name || ""} No. ${l.lodgeNumber}`.trim();
-    return l.name || "";
-  }
-
-  const memberships = lodges?.map(l => ({
-    id: l.id,
-    lodgeName: lodgeLabel(l),
-    status: "Current" as const,
-    startDate: l.joinDate,
-  })) || [];
+  const lodgeLabel = (l: any) => {
+    const num = l?.lodgeNumber ? ` No. ${l.lodgeNumber}` : "";
+    return `${l?.name || l?.lodgeName || "Lodge"}${num}`.trim();
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -52,17 +45,35 @@ export default function Dashboard() {
 
       <SectionCard title="Lodge Memberships">
         <div className="space-y-2">
-          {memberships.length === 0 && <div className="text-sm text-gray-500">No lodges added yet.</div>}
-          {memberships.map(m => (
-            <div key={m.id} className="flex items-center justify-between">
+          {currentMemberships.length === 0 && <div className="text-sm text-gray-500">No current memberships.</div>}
+          {currentMemberships.map((l: any) => (
+            <div key={l.id} className="flex items-center justify-between">
               <div className="min-w-0">
-                <div className="font-medium truncate">{m.lodgeName}</div>
-                <div className="text-xs text-gray-500">Joined {m.startDate || "—"}</div>
+                <div className="font-medium truncate">{lodgeLabel(l)}</div>
+                <div className="text-xs text-gray-500">Joined {l?.joinDate || "—"}</div>
               </div>
-              <div className="text-xs px-2 py-0.5 rounded bg-green-50 text-green-700 border border-green-200">{m.status}</div>
+              <div className="text-xs px-2 py-0.5 rounded bg-green-50 text-green-700 border border-green-200">Current</div>
             </div>
           ))}
         </div>
+        {resignedMemberships.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-gray-200">
+            <div className="text-xs font-semibold text-gray-600 mb-2">Past memberships</div>
+            <div className="space-y-2">
+              {resignedMemberships.map((l: any) => (
+                <div key={l.id} className="flex items-center justify-between">
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{lodgeLabel(l)}</div>
+                    <div className="text-xs text-gray-500">
+                      Joined {l?.joinDate || "—"}{(l?.resignedDate || l?.endDate) ? ` • Resigned ${l?.resignedDate || l?.endDate}` : ""}
+                    </div>
+                  </div>
+                  <div className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700 border border-gray-200">Resigned</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </SectionCard>
 
       <SectionCard title="Current Lodge Offices">

@@ -1,4 +1,3 @@
-// Lodge offices — ordered as requested (junior → senior as per your list sequence)
 export const LODGE_OFFICES_ORDERED: string[] = [
   "Inner Guard",
   "Junior Deacon",
@@ -11,13 +10,13 @@ export const LODGE_OFFICES_ORDERED: string[] = [
   "Treasurer",
   "Secretary",
   "Director of Ceremonies",
+  "Assistant Director of Ceremonies",
   "Chaplain",
   "Organist",
   "Almoner",
   "Tyler",
 ];
 
-// Grand list retained from previous mapping file; not included here to avoid conflicts if you already patched it.
 export const GRAND_OFFICES_ORDERED: string[] = [
   "Grand Stewards",
   "Grand Tyler",
@@ -26,10 +25,8 @@ export const GRAND_OFFICES_ORDERED: string[] = [
   "Grand Standard Bearer",
   "Grand Sword Bearer",
   "Grand Bible Bearer",
-  "Grand Deacon",
   "Junior Grand Deacon",
   "Senior Grand Deacon",
-  "District Grand Director of Ceremonies",
   "Assistant Grand Director of Ceremonies",
   "Grand Director of Ceremonies",
   "Grand Lecturer",
@@ -42,14 +39,18 @@ export const GRAND_OFFICES_ORDERED: string[] = [
   "Grand Chaplain",
   "Grand Secretary",
   "Grand Superintendent of Regions",
-  "Junior Grand Warden",
-  "Senior Grand Warden",
   "District Grand Master",
-  "Divisional Grand Master",
   "Past Presidents Board of General Purposes",
   "Past President Board of Benevolence",
   "Past Superintendent of the Freemasons Charity",
+  "Divisional Grand Master",
+  "Senior Grand Warden",
+  "Junior Grand Warden",
+  "Past Grand Warden",
+  "Grand Almoner",
   "Deputy Grand Master",
-  "Pro Grand Master",
   "Grand Master",
+  "Pro Grand Master",
+  "Past Grand Master",
+  "Past Pro Grand Master",
 ];
