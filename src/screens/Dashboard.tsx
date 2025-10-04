@@ -1,14 +1,17 @@
 import React from "react";
 import { SectionCard } from "../components/SectionCard";
-import { useProfile, rankPrefix } from "../context/ProfileContext";
+import { useProfile } from "../context/ProfileContext";
+import { useOffices, computePrefix, computePostNominals } from "../context/OfficesContext";
 
 export type LodgeMembership = { id: string; lodgeName: string; status: "Current" | "Resigned" | "Past"; startDate?: string; endDate?: string; };
 export type Office = { id: string; scope: "Lodge" | "Grand"; lodgeName?: string; officeName: string; startDate: string; endDate?: string; isCurrent: boolean; };
 
 export default function Dashboard({ memberships, offices }: { memberships: LodgeMembership[]; offices: Office[]; }) {
   const { profile } = useProfile();
-  const prefix = rankPrefix(profile.rank);
-  const fullName = `${prefix} ${profile.firstName} ${profile.lastName}${profile.grandPostNominals ? ", " + profile.grandPostNominals : ""}`;
+  const { offices: globalOffices } = useOffices();
+  const prefix = computePrefix(globalOffices.length ? globalOffices : offices as any);
+  const posts = computePostNominals(globalOffices.length ? globalOffices : offices as any);
+  const fullName = `${prefix} ${profile.firstName} ${profile.lastName}${posts.length ? ", " + posts.join(", ") : ""}`;
 
   const currentMemberships = memberships.filter((m) => m.status === "Current");
   const currentLodgeOffices = offices.filter((o) => o.scope === "Lodge" && o.isCurrent);
