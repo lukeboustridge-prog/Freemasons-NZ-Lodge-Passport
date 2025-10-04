@@ -1,6 +1,7 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import NavBar from "../components/NavBar";
+import AppBrandBar from "../components/AppBrandBar";
 import Dashboard from "../screens/Dashboard";
 import { MilestonesScreen } from "../screens/Milestones";
 import { VisitsScreen } from "../screens/Visits";
@@ -11,10 +12,6 @@ import { OfficesProvider, Office } from "../context/OfficesContext";
 import { LodgesProvider, Lodge } from "../context/LodgesContext";
 import { VisitsProvider } from "../context/VisitsContext";
 import { MilestonesProvider, Milestone } from "../context/MilestonesContext";
-import PWAInstallPrompt from "../components/PWAInstallPrompt";
-import { registerServiceWorker } from "../sw-register";
-
-registerServiceWorker();
 
 export default function AppShell() {
   const offices: Office[] = [];
@@ -29,6 +26,7 @@ export default function AppShell() {
           <VisitsProvider initial={visits as any}>
             <MilestonesProvider initial={milestones}>
               <div className="min-h-screen bg-gray-50 text-gray-900">
+                <AppBrandBar />
                 <NavBar />
                 <main className="max-w-5xl mx-auto p-4 sm:p-6">
                   <Routes>
@@ -41,7 +39,6 @@ export default function AppShell() {
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                   </Routes>
                 </main>
-                <PWAInstallPrompt />
               </div>
             </MilestonesProvider>
           </VisitsProvider>
