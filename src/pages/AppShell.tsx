@@ -11,18 +11,16 @@ import { OfficesProvider, Office } from "../context/OfficesContext";
 import { LodgesProvider, Lodge } from "../context/LodgesContext";
 import { VisitsProvider } from "../context/VisitsContext";
 import { MilestonesProvider, Milestone } from "../context/MilestonesContext";
+import PWAInstallPrompt from "../components/PWAInstallPrompt";
+import { registerServiceWorker } from "../sw-register";
+
+registerServiceWorker();
 
 export default function AppShell() {
-  const offices: Office[] = [
-    { id: "o1", scope: "Lodge", lodgeName: "Lodge Example No. 123", officeName: "Master", startDate: "2024-04-01", isCurrent: true },
-  ];
-  const lodges: Lodge[] = [
-    { id: "l1", name: "Lodge Example", lodgeNumber: "123", joinDate: "2019-03-15" },
-  ];
-  const milestones: Milestone[] = [
-    { id: "ms1", type: "Initiation", date: "2017-02-10" },
-  ];
-  const visits = [];
+  const offices: Office[] = [];
+  const lodges: Lodge[] = [];
+  const milestones: Milestone[] = [];
+  const visits: any[] = [];
 
   return (
     <ProfileProvider>
@@ -43,6 +41,7 @@ export default function AppShell() {
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                   </Routes>
                 </main>
+                <PWAInstallPrompt />
               </div>
             </MilestonesProvider>
           </VisitsProvider>
