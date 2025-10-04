@@ -2,6 +2,12 @@ import React from "react";
 import { Link, NavLink } from "react-router-dom";
 import Logo from "./Logo";
 
+const item = (isActive: boolean) =>
+  [
+    "px-2 py-1 rounded-md transition-colors",
+    isActive ? "text-blue-600 bg-blue-50" : "text-gray-700 hover:text-blue-600 hover:bg-gray-100",
+  ].join(" ");
+
 export default function NavBar() {
   return (
     <header className="bg-white border-b border-gray-200">
@@ -10,13 +16,13 @@ export default function NavBar() {
           <Logo className="h-8 w-auto" />
           <span className="font-semibold truncate">My Masonic Passport</span>
         </Link>
-        <nav className="flex items-center gap-3 text-sm">
-          <NavLink to="/dashboard" className={({isActive}) => (isActive ? "font-semibold" : "text-gray-600")}>Dashboard</NavLink>
-          <NavLink to="/profile" className={({isActive}) => (isActive ? "font-semibold" : "text-gray-600")}>Profile</NavLink>
-          <NavLink to="/offices" className={({isActive}) => (isActive ? "font-semibold" : "text-gray-600")}>Offices</NavLink>
-          <NavLink to="/milestones" className={({isActive}) => (isActive ? "font-semibold" : "text-gray-600")}>Milestones</NavLink>
-          <NavLink to="/visits" className={({isActive}) => (isActive ? "font-semibold" : "text-gray-600")}>Visits</NavLink>
-          <NavLink to="/settings" className={({isActive}) => (isActive ? "font-semibold" : "text-gray-600")}>Settings</NavLink>
+        <nav className="flex items-center gap-1 text-sm">
+          <NavLink to="/dashboard" className={({isActive}) => item(isActive)}>Dashboard</NavLink>
+          <NavLink to="/profile" className={({isActive}) => item(isActive)}>Profile</NavLink>
+          <NavLink to="/offices" className={({isActive}) => item(isActive)}>Offices</NavLink>
+          <NavLink to="/milestones" className={({isActive}) => item(isActive)}>Milestones</NavLink>
+          <NavLink to="/visits" className={({isActive}) => item(isActive)}>Visits</NavLink>
+          <NavLink to="/settings" className={({isActive}) => item(isActive)}>Settings</NavLink>
         </nav>
       </div>
     </header>
