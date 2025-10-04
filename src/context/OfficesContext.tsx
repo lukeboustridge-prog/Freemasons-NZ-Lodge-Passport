@@ -115,25 +115,29 @@ export function pickPrimaryGrandOffice(offices: Office[]): { office: Office | nu
   return { office: sorted[0], isPast: true };
 }
 
-/** Prefix: prefer Grand mapping; else if Lodge "Master" or "Immediate Past Master" (but NOT Deputy Master), return WBro; else Bro. */
+/** Prefix: prefer Grand mapping; else if Lodge Master/IPM/PM (not Deputy Master) → WBro; else Bro. */
 export function computePrefix(offices: Office[]): Prefix {
   const { office: primary } = pickPrimaryGrandOffice(offices);
   if (primary) {
     const m = findGrandMap(primary.officeName);
     if (m) return m.prefix;
   }
-  // Lodge-only fallback
-  const names = offices.map(o => o.officeName.toLowerCase());
-  const hasIPM = names.some(n => n.includes("immediate past master"));
-  const hasMaster = names.some(n => n.includes(" master") && !n.includes("deputy master"));
-  if (hasIPM || hasMaster) return "WBro";
+  // Lodge-only fallback: robust word checks
+  const names = offices.map(o => (o.officeName || "").toLowerCase());
+  const hasDeputyMaster = names.some(n => n.replace(/\s+/g, " ").includes("deputy master"));
+  const tokensLists = names.map(n => n.split(/[^a-z]+/));
+  const hasWM = names.some(n =>
+    n.includes("worshipful master") ||
+    n.includes("immediate past master") ||
+    n.includes("past master")
+  ) || tokensLists.some(tokens => tokens.includes("master"));
+  if (hasWM && !hasDeputyMaster) return "WBro";
   return "Bro";
 }
 
 export function computeHighestPostNominal(offices: Office[]): string | null {
   const { office: primary, isPast } = pickPrimaryGrandOffice(offices);
   if (!primary) return null;
-  const t = primary.officeName.toLowerCase();
   const map = findGrandMap(primary.officeName);
   if (map) {
     return isPast && map.pastAbbr ? map.pastAbbr : map.abbr;
